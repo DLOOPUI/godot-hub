@@ -1,0 +1,119 @@
+/*
+ * Tokens de diseno — neumorfismo en azules Godot.
+ *
+ * Regla base del neumorfismo: el fondo y la superficie comparten color. El
+ * relieve nace exclusivamente de dos sombras opuestas, nunca de un borde.
+ * Si cambias --surface, cambia tambien --shadow-dark/--shadow-light en la
+ * misma direccion o el efecto se rompe.
+ */
+
+:root {
+  /* Superficie unica: fondo == tarjeta */
+  --surface: #2b3a4a;
+  --surface-sunken: #26343f;
+  --shadow-dark: #1e2934;
+  --shadow-light: #38495c;
+
+  --accent: #478cbf;
+  --accent-soft: #5aa8e0;
+  --accent-dim: rgba(71, 140, 191, 0.18);
+
+  --text: #e6eef5;
+  --text-muted: #93a7b8;
+
+  --success: #46b76e;
+  --danger: #c96a6a;
+  --warning: #d8a657;
+
+  --r-card: 18px;
+  --r-btn: 14px;
+  --r-pill: 999px;
+
+  --d: 6px; /* distancia de sombra */
+  --b: 12px; /* blur de sombra */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', monospace;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur: 180ms;
+
+  --titlebar-h: 40px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --surface: #e3ebf2;
+    --surface-sunken: #dae4ed;
+    --shadow-dark: #bcc7d2;
+    --shadow-light: #ffffff;
+
+    --accent: #3d7aa8;
+    --accent-soft: #2f6790;
+    --accent-dim: rgba(61, 122, 168, 0.16);
+
+    --text: #24313d;
+    --text-muted: #5b6d7d;
+
+    --success: #2f8f52;
+    --danger: #b04a4a;
+    --warning: #a97726;
+  }
+}
+
+/* Reset minimo */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden; /* el scroll vive en el contenido, no en la ventana */
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/*
+ * Foco visible siempre solido. En neumorfismo las sombras NO sirven como
+ * indicador de foco: no tienen contraste suficiente contra la superficie.
+ */
+:focus-visible {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 3px;
+  border-radius: var(--r-btn);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -1,0 +1,36 @@
+appId: com.david.godot-autoupdate
+productName: Godot AutoUpdate
+copyright: © 2026 david
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**
+  - package.json
+
+# El toast de Windows busca el icono por esta ruta en tiempo de ejecucion
+# (ver src/main/notify.ts).
+extraResources:
+  - from: build/icon.ico
+    to: icon.ico
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  # Imprescindible para las notificaciones: Windows solo muestra el toast si
+  # existe un acceso directo en el Menu Inicio con el mismo AppUserModelID
+  # que fija la app.
+  createStartMenuShortcut: true
+  shortcutName: Godot AutoUpdate
+  artifactName: ${productName}-${version}-setup.${ext}
+  deleteAppDataOnUninstall: false

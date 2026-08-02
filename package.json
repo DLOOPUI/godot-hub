@@ -1,0 +1,37 @@
+{
+  "name": "godot-autoupdate",
+  "version": "0.1.0",
+  "description": "Gestor de versiones stable de Godot con interfaz neumorfica",
+  "main": "out/main/index.js",
+  "author": "david",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "tsc --noEmit && electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dist": "npm run build && electron-builder --win --config electron-builder.yml",
+    "make-icon": "esbuild scripts/make-icon.ts --bundle --platform=node --format=cjs --external:electron --outfile=.tmp-icon/main.js && node -e \"require('fs').writeFileSync('.tmp-icon/package.json','{\\\"main\\\":\\\"main.js\\\"}')\" && electron .tmp-icon"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/yauzl": "^3.4.0",
+    "electron": "^33.3.1",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^2.3.0",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
+    "vitest": "^4.1.10"
+  },
+  "allowScripts": {
+    "electron@33.4.11": true,
+    "esbuild@0.21.5": true,
+    "electron-winstaller@5.4.0": true
+  },
+  "dependencies": {
+    "yauzl": "^3.4.0"
+  }
+}

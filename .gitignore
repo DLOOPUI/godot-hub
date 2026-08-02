@@ -1,0 +1,9 @@
+node_modules/
+out/
+dist/
+release/
+.tmp-icon/
+*.log
+
+# build/icon.ico y build/icon.png SI se versionan: los genera `npm run make-icon`
+# a mano cuando cambia el diseño, no el build.
