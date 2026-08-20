@@ -5,12 +5,18 @@ import { escapeHtml } from './format'
 import { runInstallFlow } from './views/install-flow'
 import { renderOnboarding, validateSavedWorkspace } from './views/onboarding'
 import { renderReleases } from './views/releases'
+import { renderLibrary } from './views/library'
+import { createShell } from './components/shell'
 import { confirmWorkspaceChange, openSettings } from './views/settings'
 import type { ReleasesView } from './views/releases'
-import type { GodotFlavor, Release } from '../shared/types'
+import type { LibraryView } from './views/library'
+import type { Section, Shell } from './components/shell'
+import type { GodotFlavor, LibraryEntry, Release } from '../shared/types'
 
 let content: HTMLElement | null = null
+let shell: Shell | null = null
 let view: ReleasesView | null = null
+let library: LibraryView | null = null
 let currentJobId: string | null = null
 
 function setView(element: HTMLElement): void {
@@ -31,18 +37,20 @@ function wireInstallEvents(): void {
   bridge.onInstallDone((done) => {
     if (done.jobId !== currentJobId) return
     currentJobId = null
-    void showReleases()
+    view?.endInstall()
+    void refreshAfterInstall()
   })
 
   bridge.onGodotClosed(() => {
     // Al volver se repinta: la carpeta pudo cambiar mientras estabamos fuera.
-    void showReleases()
+    void library?.refresh()
   })
 
   bridge.onInstallError((error) => {
     if (error.jobId !== currentJobId) return
     currentJobId = null
-    void showReleases().then(() => {
+    view?.endInstall()
+    void refreshAfterInstall().then(() => {
       // Cancelar es una decision del usuario, no un fallo que reportar.
       if (error.canceled) return
       void openModal({
@@ -77,6 +85,13 @@ function wireShortcuts(): void {
   })
 }
 
+/** Tras instalar cambian tanto la biblioteca como las marcas de la lista. */
+async function refreshAfterInstall(): Promise<void> {
+  const config = await bridge.getConfig()
+  view?.setInstalled(config.installed.map((item) => item.tag))
+  await library?.refresh()
+}
+
 async function handleInstall(release: Release, flavor: GodotFlavor): Promise<void> {
   // Se relee la config: las casillas "no preguntar" pueden haber cambiado
   // desde Ajustes o en una instalacion anterior de esta misma sesion.
@@ -98,12 +113,16 @@ async function handleInstall(release: Release, flavor: GodotFlavor): Promise<voi
  * lista deje de prometer algo que no esta.
  */
 async function handleLaunch(release: Release): Promise<void> {
-  const result = await bridge.launchVersion(release.tag)
+  await launchByTag(release.tag, release.tag)
+}
+
+async function launchByTag(tag: string, label: string): Promise<void> {
+  const result = await bridge.launchVersion(tag)
   if (result.ok) return
 
   if (result.reason === 'missing') {
     const answer = await openModal({
-      title: `No se encuentra Godot ${escapeHtml(release.tag)}`,
+      title: `No se encuentra Godot ${escapeHtml(label)}`,
       body: `
         <p>${escapeHtml(result.message)}</p>
         ${result.exePath ? `<p class="path-chip"><code>${escapeHtml(result.exePath)}</code></p>` : ''}
@@ -115,8 +134,8 @@ async function handleLaunch(release: Release): Promise<void> {
       ]
     })
     if (answer.value === 'forget') {
-      await bridge.forgetVersion(release.tag)
-      await showReleases()
+      await bridge.forgetVersion(tag)
+      await library?.refresh()
     }
     return
   }
@@ -126,6 +145,15 @@ async function handleLaunch(release: Release): Promise<void> {
     body: `<p>${escapeHtml(result.message)}</p>`,
     actions: [{ label: 'Entendido', value: 'ok', variant: 'accent' }]
   })
+}
+
+async function handleLaunchEntry(entry: LibraryEntry): Promise<void> {
+  await launchByTag(entry.tag, entry.tag)
+}
+
+async function handleForget(entry: LibraryEntry): Promise<void> {
+  await bridge.forgetVersion(entry.tag)
+  await library?.refresh()
 }
 
 async function handleSettings(): Promise<void> {
@@ -139,21 +167,58 @@ async function handleSettings(): Promise<void> {
   // Se invalida la carpeta actual antes de volver al onboarding: si el usuario
   // cancela ahi, la app no debe seguir operando sobre una eleccion a medias.
   await bridge.setConfig({ workspaceConfirmed: false })
-  setView(renderOnboarding(() => void showReleases()))
+  setView(renderOnboarding(() => void buildShell()))
 }
 
-async function showReleases(): Promise<void> {
+/**
+ * Ambas vistas se crean una sola vez y se alterna cual esta visible.
+ *
+ * Destruirlas al navegar perderia el progreso de una descarga en curso, que es
+ * justo el momento en el que uno se va a mirar otra cosa.
+ */
+function navigate(section: Section): void {
+  if (!view || !library) return
+
+  const toLibrary = section === 'library'
+  library.element.hidden = !toLibrary
+  view.element.hidden = toLibrary
+  shell?.setActive(section)
+
+  // Al volver puede haber cambiado lo instalado.
+  if (toLibrary) void library.refresh()
+}
+
+async function buildShell(): Promise<void> {
   const config = await bridge.getConfig()
+
+  shell = createShell({
+    workspacePath: config.workspacePath ?? '',
+    onNavigate: navigate,
+    onOpenSettings: () => void handleSettings()
+  })
+
   view = renderReleases({
     config,
     onInstall: (release, flavor) => void handleInstall(release, flavor),
     onLaunch: (release) => void handleLaunch(release),
-    onOpenSettings: () => void handleSettings(),
     onCancelInstall: () => {
       if (currentJobId) void bridge.cancelInstall(currentJobId)
     }
   })
-  setView(view.element)
+
+  library = renderLibrary({
+    onLaunch: (entry) => void handleLaunchEntry(entry),
+    onForget: (entry) => void handleForget(entry),
+    onBrowse: () => navigate('releases')
+  })
+
+  shell.host.appendChild(library.element)
+  shell.host.appendChild(view.element)
+  setView(shell.element)
+
+  // La biblioteca es la seccion de entrada: arrancar una version instalada es
+  // lo que se hace a diario, buscar versiones nuevas es ocasional.
+  navigate('library')
 }
 
 async function bootstrap(): Promise<void> {
@@ -173,9 +238,9 @@ async function bootstrap(): Promise<void> {
     (await validateSavedWorkspace(config.workspacePath)) === null
 
   if (stillValid) {
-    await showReleases()
+    await buildShell()
   } else {
-    setView(renderOnboarding(() => void showReleases()))
+    setView(renderOnboarding(() => void buildShell()))
   }
 }
 

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { getConfig, setConfig } from './config'
 import { cancelInstall, startInstall } from './installer'
+import { listLibrary } from './library'
 import { forgetVersion, launchVersion } from './launcher'
 import { hideDuringGame, restoreAfterGame } from './session'
 import { log, logDir } from './logger'
@@ -9,7 +10,14 @@ import { listReleases } from './releases'
 import type { LogLevel } from './logger'
 import { clearWorkspace, inspectWorkspace } from './workspace'
 import type { AppInfo, InstallRequest, PickResult, WindowAction } from '../shared/ipc'
-import type { ClearResult, Config, LaunchResult, ReleasesResult, WorkspaceInspection } from '../shared/types'
+import type {
+  ClearResult,
+  Config,
+  LaunchResult,
+  LibraryEntry,
+  ReleasesResult,
+  WorkspaceInspection
+} from '../shared/types'
 
 export function registerIpc(isDev: boolean): void {
   ipcMain.handle('app:info', (): AppInfo => ({
@@ -99,6 +107,8 @@ export function registerIpc(isDev: boolean): void {
     log('info', 'install:cancel solicitado', { jobId })
     cancelInstall(jobId)
   })
+
+  ipcMain.handle('library:list', (): Promise<LibraryEntry[]> => listLibrary())
 
   ipcMain.handle('godot:launch', async (event, tag: string): Promise<LaunchResult> => {
     const win = BrowserWindow.fromWebContents(event.sender)

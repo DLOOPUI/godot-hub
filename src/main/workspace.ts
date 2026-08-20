@@ -98,7 +98,11 @@ async function isWritable(path: string): Promise<boolean> {
   }
 }
 
-async function walkSize(path: string): Promise<number> {
+/**
+ * Tamaño de una carpeta, con los mismos topes que el resto: una carpeta enorme
+ * devuelve una cifra aproximada en vez de congelar la interfaz.
+ */
+export async function walkSize(path: string): Promise<number> {
   const deadline = Date.now() + WALK_MAX_MS
   let visited = 0
   let total = 0

@@ -122,6 +122,18 @@ export interface ClearResult {
   failed: { name: string; reason: string }[]
 }
 
+/** Una version instalada, enriquecida con lo que dice el disco ahora mismo. */
+export interface LibraryEntry extends InstalledVersion {
+  /** Ruta completa al ejecutable. */
+  exePath: string
+  /** Carpeta de la version. */
+  folderPath: string
+  /** false si la carpeta se borro por fuera de la app. */
+  exists: boolean
+  /** Aproximado; 0 si no existe. */
+  sizeBytes: number
+}
+
 export type LaunchFailure = 'no-workspace' | 'not-installed' | 'outside-workspace' | 'missing' | 'failed'
 
 export type LaunchResult =

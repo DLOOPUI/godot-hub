@@ -686,6 +686,34 @@
   flex-wrap: wrap;
 }
 
+/* ---------- Armazón y navegación ---------- */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.nav__spacer {
+  flex: 1;
+}
+
+.shell__host {
+  display: flex;
+  flex-direction: column;
+}
+
+/* El armazón ya aporta el hueco entre bloques: la pila interna de cada vista
+   no debe sumar otro margen ni volver a centrarse. */
+.stack--flush {
+  max-width: none;
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
 .release-list {
   display: flex;
   flex-direction: column;

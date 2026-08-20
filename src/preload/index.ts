@@ -8,6 +8,7 @@ import type {
   InstallError,
   InstallProgress,
   LaunchResult,
+  LibraryEntry,
   ReleasesResult,
   WorkspaceInspection
 } from '../shared/types'
@@ -66,6 +67,7 @@ const api = {
   onInstallError: (listener: (error: InstallError) => void): (() => void) =>
     on('install:error', listener as (...args: never[]) => void),
 
+  listLibrary: (): Promise<LibraryEntry[]> => invoke<LibraryEntry[]>('library:list'),
   launchVersion: (tag: string): Promise<LaunchResult> => invoke<LaunchResult>('godot:launch', tag),
   onGodotClosed: (listener: (tag: string) => void): (() => void) =>
     on('godot:closed', listener as (...args: never[]) => void),

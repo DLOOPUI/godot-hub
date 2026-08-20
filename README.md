@@ -56,7 +56,7 @@ Vuelve a pasar cada vez que se borra `node_modules`.
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Arranca en desarrollo con recarga en caliente |
-| `npm test` | Ejecuta las 88 pruebas (no toca la red) |
+| `npm test` | Ejecuta las 94 pruebas (no toca la red) |
 | `npm run test:watch` | Pruebas en modo vigilancia |
 | `npm run typecheck` | `tsc --noEmit` sobre `src/` y `test/` |
 | `npm run build` | Typecheck + compila los tres bundles a `out/` |
@@ -92,10 +92,20 @@ Solo hay que regenerarlo si cambia el diseño:
 npm run make-icon
 ```
 
+## Las dos secciones
+
+**Biblioteca** es la pantalla de entrada: lo que ya tienes instalado, con su tamaño en
+disco y un botón para arrancarlo. Es lo que se usa a diario; buscar versiones nuevas es
+ocasional. Si una carpeta se borró por fuera de la app, la versión sigue apareciendo
+marcada como ausente —ocultarla dejaría al usuario sin entender por qué desapareció— y
+se ofrece quitarla del registro.
+
+**Versiones** es la lista de las 10 últimas stable publicadas, para instalar.
+
 ## Iniciar una versión
 
-Las versiones ya instaladas muestran un botón **Iniciar** en su tarjeta, junto a
-*Reinstalar*.
+Se arranca desde la Biblioteca, o desde la propia lista de Versiones si ya está
+instalada.
 
 Al pulsarlo, el gestor **se esconde** y reaparece solo cuando cierras Godot, como hace
 el lanzador de Epic Games. Mientras tanto queda un icono en la bandeja del sistema desde
@@ -163,7 +173,7 @@ se queda como está; la app simplemente deja de gestionarla.
 npm test
 ```
 
-88 pruebas en 8 archivos, sin acceso a red: `electron` se sustituye por un doble
+94 pruebas en 9 archivos, sin acceso a red: `electron` se sustituye por un doble
 ([test/helpers/electron-mock.ts](test/helpers/electron-mock.ts)) y las descargas las
 sirve un servidor HTTP local.
 

@@ -47,6 +47,7 @@ AUTOUPDATE/
 │  │  ├─ releases.ts            # consulta de GitHub + caché con ETag
 │  │  ├─ installer.ts           # descarga, SHA-512, extracción, cancelación
 │  │  ├─ launcher.ts            # arranca una versión y vigila cuándo se cierra
+│  │  ├─ library.ts             # versiones instaladas contrastadas con el disco
 │  │  ├─ session.ts             # esconder/restaurar la ventana y el icono de bandeja
 │  │  ├─ notify.ts              # toasts de Windows
 │  │  └─ logger.ts              # userData/logs/app.log con rotación
@@ -58,9 +59,9 @@ AUTOUPDATE/
 │  │  ├─ format.ts              # bytes, fechas, ETA, escapeHtml
 │  │  ├─ components/            # icons, modal, titlebar
 │  │  ├─ styles/                # tokens.css, components.css
-│  │  └─ views/                 # onboarding, releases, install-flow, settings
+│  │  └─ views/                 # onboarding, library, releases, install-flow, settings
 │  └─ shared/                   # ipc.ts (contrato), types.ts (modelos)
-├─ test/                        # 88 pruebas (vitest)
+├─ test/                        # 94 pruebas (vitest)
 │  └─ helpers/                  # electron-mock, escritor de zip, servidor HTTP
 ├─ build/icon.ico               # generado por scripts/make-icon.ts, versionado
 ├─ scripts/make-icon.ts         # regenera el icono cuando cambia el diseño
@@ -139,6 +140,22 @@ Si algún elemento está bloqueado por otro proceso, se informa de cuál y no se
 
 `clearWorkspace` vuelve a validar la ruta en el proceso principal antes de borrar: el
 renderer no es la última palabra.
+
+### Las dos secciones
+
+La app se divide en **Biblioteca** (lo instalado, para arrancarlo) y **Versiones** (lo
+publicado, para instalarlo), con la Biblioteca como entrada por ser lo del día a día.
+
+El marco común —navegación, carpeta de trabajo y ajustes— vive en `components/shell.ts`,
+fuera de las vistas: si cada una dibujara su cabecera, cambiar de pestaña la repintaría
+y se vería el salto.
+
+Las dos vistas se crean una sola vez y se alterna cuál está visible. Destruirlas al
+navegar perdería el progreso de una descarga en curso, que es justo el momento en el que
+uno se va a mirar otra cosa.
+
+`config.installed` es solo lo que la app recuerda; `listLibrary` lo contrasta con el
+disco y marca lo ausente en vez de ocultarlo.
 
 ### Paso 3 — Lista de versiones
 
@@ -289,7 +306,7 @@ eventos: window:maximized-changed
 | 6 | Motor de instalación: descarga, SHA-512, extracción, cancelación | hecha |
 | 7 | Notificación nativa y empaquetado NSIS | hecha |
 | 8 | Pulido: registro, atajos, accesibilidad, cambio de carpeta | hecha |
-| — | Pruebas: 88 en vitest | hecha |
+| — | Pruebas: 94 en vitest | hecha |
 
 ---
 

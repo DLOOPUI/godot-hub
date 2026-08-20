@@ -6,14 +6,7 @@
  * un diff a mano, y no hay foco de texto que preservar.
  */
 import { bridge } from '../bridge'
-import {
-  iconAlert,
-  iconDownload,
-  iconFolder,
-  iconPlay,
-  iconRefresh,
-  iconSettings
-} from '../components/icons'
+import { iconAlert, iconDownload, iconPlay, iconRefresh } from '../components/icons'
 import { escapeHtml, formatBytes, formatDate, formatDateTime, formatEta, formatSpeed } from '../format'
 import type {
   Config,
@@ -36,7 +29,6 @@ export interface ReleasesViewOptions {
   config: Config
   onInstall: (release: Release, flavor: GodotFlavor) => void
   onLaunch: (release: Release) => void
-  onOpenSettings: () => void
   onCancelInstall: () => void
 }
 
@@ -48,19 +40,20 @@ export interface ReleasesView {
   endInstall: () => void
   /** Recarga desde GitHub; la usa el atajo F5. */
   reload: () => void
+  /** Refresca las marcas de "instalada" sin volver a pedir la lista. */
+  setInstalled: (tags: string[]) => void
   isBusy: () => boolean
 }
 
 export function renderReleases(options: ReleasesViewOptions): ReleasesView {
-  const root = document.createElement('main')
-  root.className = 'content'
+  // La vista ya no es la raiz de la pantalla: se monta dentro del armazon.
+  const root = document.createElement('section')
 
   let flavor: GodotFlavor = options.config.flavor
-  const workspacePath = options.config.workspacePath ?? ''
-  const installedTags = new Set(options.config.installed.map((item) => item.tag))
+  const installedTags = new Set<string>(options.config.installed.map((item) => item.tag))
 
   const stack = document.createElement('div')
-  stack.className = 'stack'
+  stack.className = 'stack stack--flush'
   root.appendChild(stack)
 
   // Contenedor propio, no `.stack`: el `margin: 0 auto` de .stack anula el
@@ -69,14 +62,6 @@ export function renderReleases(options: ReleasesViewOptions): ReleasesView {
   list.className = 'release-list'
 
   stack.innerHTML = `
-    <div class="workspace-bar card">
-      <div class="workspace-bar__info">
-        <p class="section-label" style="margin: 0 0 2px">Carpeta de trabajo</p>
-        <p class="workspace-bar__path">${escapeHtml(workspacePath)}</p>
-      </div>
-      <button class="btn btn--ghost" id="open-folder">${iconFolder()}<span>Abrir</span></button>
-    </div>
-
     <div class="releases-head">
       <div>
         <h1 class="h1">Versiones stable de Godot</h1>
@@ -90,9 +75,6 @@ export function renderReleases(options: ReleasesViewOptions): ReleasesView {
         <button class="btn btn--ghost" id="refresh" aria-label="Recargar la lista">
           ${iconRefresh()}<span>Recargar</span>
         </button>
-        <button class="btn btn--ghost btn--icon-only" id="settings" aria-label="Ajustes">
-          ${iconSettings()}
-        </button>
       </div>
     </div>
   `
@@ -100,12 +82,6 @@ export function renderReleases(options: ReleasesViewOptions): ReleasesView {
 
   const meta = stack.querySelector<HTMLElement>('#meta')!
   const refreshButton = stack.querySelector<HTMLButtonElement>('#refresh')!
-
-  stack.querySelector<HTMLButtonElement>('#open-folder')?.addEventListener('click', () => {
-    void bridge.revealWorkspace(workspacePath)
-  })
-
-  stack.querySelector<HTMLButtonElement>('#settings')?.addEventListener('click', options.onOpenSettings)
 
   const syncFlavorButtons = (): void => {
     stack.querySelectorAll<HTMLButtonElement>('.segmented__option').forEach((button) => {
@@ -161,6 +137,11 @@ export function renderReleases(options: ReleasesViewOptions): ReleasesView {
     },
     reload: () => {
       if (!installingTag) void load(true)
+    },
+    setInstalled: (tags) => {
+      installedTags.clear()
+      for (const tag of tags) installedTags.add(tag)
+      if (lastResult) paint(lastResult)
     },
     isBusy: () => installingTag !== null
   }
