@@ -67,6 +67,8 @@ const api = {
     on('install:error', listener as (...args: never[]) => void),
 
   launchVersion: (tag: string): Promise<LaunchResult> => invoke<LaunchResult>('godot:launch', tag),
+  onGodotClosed: (listener: (tag: string) => void): (() => void) =>
+    on('godot:closed', listener as (...args: never[]) => void),
   forgetVersion: (tag: string): Promise<void> => invoke<void>('godot:forget', tag),
 
   log: (level: 'info' | 'warn' | 'error', message: string): Promise<void> =>

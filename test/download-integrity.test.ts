@@ -19,9 +19,21 @@ const ASSET = 'Godot_v9.9-stable_win64.exe.zip'
  * solo chunk (como en el resto de pruebas) una perdida de bytes al principio del
  * flujo pasaria desapercibida.
  */
-function chunkedServer(payload: Buffer, chunkSize: number, delayMs: number): Promise<{ url: string; close: () => Promise<void> }> {
+function chunkedServer(
+  payload: Buffer,
+  chunkSize: number,
+  delayMs: number,
+  /**
+   * Se ejecuta cuando llegan a pedirse los checksums. El instalador los pide
+   * DESPUES de terminar la descarga y ANTES de calcular el hash del archivo,
+   * asi que es un punto de enganche exacto para alterar el .part sin depender
+   * de temporizadores.
+   */
+  onChecksumRequest?: () => Promise<void>
+): Promise<{ url: string; close: () => Promise<void> }> {
   const server: Server = createServer(async (request, response) => {
     if (request.url?.includes('SHA512-SUMS')) {
+      await onChecksumRequest?.()
       const body = `${createHash('sha512').update(payload).digest('hex')}  ${ASSET}\n`
       response.writeHead(200, { 'content-length': String(Buffer.byteLength(body)) })
       response.end(body)
@@ -135,26 +147,25 @@ describe('integridad de la descarga', () => {
   })
 
   it('detecta en la verificación un archivo alterado tras descargarlo', async () => {
-    // El caso que se escapaba hasheando el flujo de red: los bytes recibidos
+    // El fallo que se escapaba hasheando el flujo de red: los bytes recibidos
     // eran correctos, pero lo que quedaba en disco no. El SHA-512 daba el visto
-    // bueno y el fallo salía luego como "invalid block type" al descomprimir.
+    // bueno y reventaba mucho despues con "invalid block type" al descomprimir.
     const zip = makeZip([{ name: 'Godot_v9.9-stable_win64.exe', content: randomBytes(256 * 1024) }], {
       deflate: true
     })
 
-    // La descarga se sirve despacio (32 trozos x 4 ms) a proposito: con el
-    // archivo entero de una vez terminaba antes de que el saboteador llegara a
-    // actuar, y la prueba pasaba o fallaba segun el reloj.
-    server = await chunkedServer(zip, 8 * 1024, 4)
-
     const tempFile = join(workspace, '.tmp', `${ASSET}.part`)
-    const saboteur = setInterval(() => {
-      void writeFile(tempFile, Buffer.alloc(64, 0)).catch(() => undefined)
-    }, 3)
+    let sabotaged = false
+
+    server = await chunkedServer(zip, 32 * 1024, 0, async () => {
+      // Aqui la descarga ya termino y el hash aun no se ha calculado.
+      await writeFile(tempFile, Buffer.alloc(64, 0))
+      sabotaged = true
+    })
 
     const result = await install('alterado', server.url)
-    clearInterval(saboteur)
 
+    expect(sabotaged, 'el enganche debía haberse ejecutado').toBe(true)
     expect(result.done, 'la instalación no debía completarse').toBeNull()
     expect(result.error?.phase).toBe('verify')
     expect(result.error?.message).toMatch(/SHA-512|incompleta|no coincide/)

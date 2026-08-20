@@ -56,7 +56,7 @@ Vuelve a pasar cada vez que se borra `node_modules`.
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Arranca en desarrollo con recarga en caliente |
-| `npm test` | Ejecuta las 83 pruebas (no toca la red) |
+| `npm test` | Ejecuta las 88 pruebas (no toca la red) |
 | `npm run test:watch` | Pruebas en modo vigilancia |
 | `npm run typecheck` | `tsc --noEmit` sobre `src/` y `test/` |
 | `npm run build` | Typecheck + compila los tres bundles a `out/` |
@@ -95,8 +95,19 @@ npm run make-icon
 ## Iniciar una versión
 
 Las versiones ya instaladas muestran un botón **Iniciar** en su tarjeta, junto a
-*Reinstalar*. Arranca el editor desligado de la app: puedes cerrar Godot Hub y Godot
-sigue abierto.
+*Reinstalar*.
+
+Al pulsarlo, el gestor **se esconde** y reaparece solo cuando cierras Godot, como hace
+el lanzador de Epic Games. Mientras tanto queda un icono en la bandeja del sistema desde
+el que puedes recuperar la ventana o salir. Se puede desactivar en Ajustes.
+
+Se esconde en vez de cerrarse porque si terminara de verdad no quedaría nadie vigilando
+para volver a abrirlo. Visualmente es lo mismo: desaparece de la barra de tareas.
+
+Godot no se comporta como un ejecutable normal —levanta dos procesos, y al abrir un
+proyecto desde el Administrador de Proyectos el proceso original termina y el editor
+continúa en otro—, así que el gestor no vigila el proceso que lanzó, sino que comprueba
+si queda **alguno** de esa versión.
 
 Si borraste la carpeta de una versión a mano, el botón lo detecta y ofrece quitarla de
 la lista de instaladas en vez de fallar en silencio.
@@ -152,7 +163,7 @@ se queda como está; la app simplemente deja de gestionarla.
 npm test
 ```
 
-83 pruebas en 7 archivos, sin acceso a red: `electron` se sustituye por un doble
+88 pruebas en 8 archivos, sin acceso a red: `electron` se sustituye por un doble
 ([test/helpers/electron-mock.ts](test/helpers/electron-mock.ts)) y las descargas las
 sirve un servidor HTTP local.
 

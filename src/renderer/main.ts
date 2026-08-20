@@ -34,6 +34,11 @@ function wireInstallEvents(): void {
     void showReleases()
   })
 
+  bridge.onGodotClosed(() => {
+    // Al volver se repinta: la carpeta pudo cambiar mientras estabamos fuera.
+    void showReleases()
+  })
+
   bridge.onInstallError((error) => {
     if (error.jobId !== currentJobId) return
     currentJobId = null

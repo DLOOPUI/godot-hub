@@ -62,6 +62,8 @@ export interface EventMap {
   'install:progress': (progress: InstallProgress) => void
   'install:done': (done: InstallDone) => void
   'install:error': (error: InstallError) => void
+  /** Godot se cerró y el gestor vuelve a estar visible. */
+  'godot:closed': (tag: string) => void
 }
 
 export const INVOKE_CHANNELS = [
@@ -86,5 +88,6 @@ export const EVENT_CHANNELS = [
   'window:maximized-changed',
   'install:progress',
   'install:done',
-  'install:error'
+  'install:error',
+  'godot:closed'
 ] as const satisfies readonly (keyof EventMap)[]

@@ -46,7 +46,8 @@ AUTOUPDATE/
 │  │  ├─ workspace.ts           # validar / inspeccionar / vaciar la carpeta
 │  │  ├─ releases.ts            # consulta de GitHub + caché con ETag
 │  │  ├─ installer.ts           # descarga, SHA-512, extracción, cancelación
-│  │  ├─ launcher.ts            # arranca una versión instalada
+│  │  ├─ launcher.ts            # arranca una versión y vigila cuándo se cierra
+│  │  ├─ session.ts             # esconder/restaurar la ventana y el icono de bandeja
 │  │  ├─ notify.ts              # toasts de Windows
 │  │  └─ logger.ts              # userData/logs/app.log con rotación
 │  ├─ preload/index.ts          # contextBridge con allowlist de canales
@@ -59,7 +60,7 @@ AUTOUPDATE/
 │  │  ├─ styles/                # tokens.css, components.css
 │  │  └─ views/                 # onboarding, releases, install-flow, settings
 │  └─ shared/                   # ipc.ts (contrato), types.ts (modelos)
-├─ test/                        # 83 pruebas (vitest)
+├─ test/                        # 88 pruebas (vitest)
 │  └─ helpers/                  # electron-mock, escritor de zip, servidor HTTP
 ├─ build/icon.ico               # generado por scripts/make-icon.ts, versionado
 ├─ scripts/make-icon.ts         # regenera el icono cuando cambia el diseño
@@ -89,6 +90,7 @@ defecto, para que un archivo editado a mano no deje la app en un estado raro.
   "skipInstallConfirm": false,              // "No preguntar a la próxima" (paso 4)
   "defaultCleanupMode": null,               // "delete" | "keep" | null (paso 5)
   "flavor": "standard",                     // "standard" | "mono"
+  "hideWhileRunning": true,                 // esconderse mientras Godot está abierto
   "installed": [
     { "tag": "4.7.1-stable", "folder": "Godot_v4.7.1-stable_win64",
       "exe": "Godot_v4.7.1-stable_win64.exe", "flavor": "standard",
@@ -192,11 +194,30 @@ y **comprueba que la ruta resultante siga dentro de la carpeta de trabajo** ante
 abrirla: `config.json` es un archivo de texto editable, y sin esa comprobación el botón
 sería "ejecuta cualquier binario del sistema".
 
-Se abre con `shell.openPath`, que usa ShellExecute: el editor queda desligado del
-gestor, así que cerrar Godot Hub no se lleva Godot por delante.
+Se lanza con `spawn` en modo `detached` + `unref`, así que Godot sobrevive al gestor.
 
 Si la carpeta se borró a mano, se ofrece quitar la versión del registro en vez de
 fallar en silencio.
+
+**Esconder el gestor mientras Godot está abierto** (`hideWhileRunning`, activo por
+defecto): la ventana se oculta al lanzar y vuelve sola al cerrarse Godot. Se **esconde,
+no se cierra**: si la app terminara de verdad no quedaría nadie vigilando para volver a
+abrirla. Mientras está oculta hay un icono en la bandeja del sistema, sin el cual una
+ventana invisible solo se podría recuperar desde el Administrador de tareas.
+
+**Detectar que Godot se cerró es lo difícil de esta función.** Godot no se comporta como
+un ejecutable normal: al arrancar levanta dos procesos, y al abrir un proyecto desde el
+Administrador de Proyectos el proceso original termina mientras el editor continúa en
+otro. Vigilar el PID lanzado haría reaparecer el gestor encima del editor recién
+abierto. Por eso se sondea cada 1,2 s si queda **algún** proceso con ese nombre de
+imagen, vía `tasklist`.
+
+Ese sondeo tiene una trampa que costó un fallo real: con el formato de tabla (`/NH`)
+`tasklist` recorta el nombre a 25 caracteres y descarta la extensión, de modo que
+`Godot_v4.7.1-stable_win64.exe` se imprime como `Godot_v4.7.1-stable_win64` y la
+comparación nunca casaba — el gestor daba a Godot por cerrado un segundo después de
+abrirlo. Se usa `/FO CSV`, que devuelve el nombre completo. La función que analiza esa
+salida está aislada y probada precisamente por eso.
 
 ### Notificación
 
@@ -268,7 +289,7 @@ eventos: window:maximized-changed
 | 6 | Motor de instalación: descarga, SHA-512, extracción, cancelación | hecha |
 | 7 | Notificación nativa y empaquetado NSIS | hecha |
 | 8 | Pulido: registro, atajos, accesibilidad, cambio de carpeta | hecha |
-| — | Pruebas: 83 en vitest | hecha |
+| — | Pruebas: 88 en vitest | hecha |
 
 ---
 

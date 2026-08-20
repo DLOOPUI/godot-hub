@@ -72,6 +72,7 @@ function normalize(raw: unknown): Config {
         ? input['defaultCleanupMode']
         : null,
     flavor: input['flavor'] === 'mono' ? 'mono' : 'standard',
+    hideWhileRunning: bool(input['hideWhileRunning'], true),
     installed: Array.isArray(input['installed'])
       ? (input['installed'].filter(
           (item) => typeof item === 'object' && item !== null && typeof (item as { tag?: unknown }).tag === 'string'

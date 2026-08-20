@@ -21,6 +21,8 @@ export interface Config {
   skipInstallConfirm: boolean
   defaultCleanupMode: CleanupMode | null
   flavor: GodotFlavor
+  /** Esconder el gestor mientras Godot esta abierto, al estilo de Epic Games. */
+  hideWhileRunning: boolean
   installed: InstalledVersion[]
 }
 
@@ -31,6 +33,7 @@ export const DEFAULT_CONFIG: Config = {
   skipInstallConfirm: false,
   defaultCleanupMode: null,
   flavor: 'standard',
+  hideWhileRunning: true,
   installed: []
 }
 

@@ -46,6 +46,15 @@ export async function openSettings(config: Config): Promise<SettingsResult> {
       <button class="btn" id="forget-cleanup">Volver a preguntar</button>
     </div>
 
+    <label class="toggle settings__row">
+      <input type="checkbox" id="hide-running" />
+      <span class="toggle__track"><span class="toggle__thumb"></span></span>
+      <span class="settings__text">
+        <span class="toggle__label">Esconder el gestor mientras Godot está abierto</span>
+        <span class="muted">Vuelve a aparecer solo al cerrar Godot. Mientras tanto queda un icono en la bandeja del sistema.</span>
+      </span>
+    </label>
+
     <div class="settings__row settings__row--block">
       <span class="settings__text">
         <span class="toggle__label">Carpeta de trabajo</span>
@@ -64,12 +73,14 @@ export async function openSettings(config: Config): Promise<SettingsResult> {
   `
 
   const askInstall = body.querySelector<HTMLInputElement>('#ask-install')!
+  const hideRunning = body.querySelector<HTMLInputElement>('#hide-running')!
   const cleanupState = body.querySelector<HTMLElement>('#cleanup-state')!
   const forgetButton = body.querySelector<HTMLButtonElement>('#forget-cleanup')!
   const workspacePath = body.querySelector<HTMLElement>('#workspace-path')!
 
   const sync = (): void => {
     askInstall.checked = !current.skipInstallConfirm
+    hideRunning.checked = current.hideWhileRunning
     cleanupState.textContent = current.defaultCleanupMode
       ? `Recordado: ${CLEANUP_LABELS[current.defaultCleanupMode]}.`
       : 'Se pregunta en cada instalación.'
@@ -80,6 +91,13 @@ export async function openSettings(config: Config): Promise<SettingsResult> {
 
   askInstall.addEventListener('change', () => {
     void bridge.setConfig({ skipInstallConfirm: !askInstall.checked }).then((next) => {
+      current = next
+      sync()
+    })
+  })
+
+  hideRunning.addEventListener('change', () => {
+    void bridge.setConfig({ hideWhileRunning: hideRunning.checked }).then((next) => {
       current = next
       sync()
     })

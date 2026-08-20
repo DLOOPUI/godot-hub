@@ -3,6 +3,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { getConfig, setConfig } from './config'
 import { cancelInstall, startInstall } from './installer'
 import { forgetVersion, launchVersion } from './launcher'
+import { hideDuringGame, restoreAfterGame } from './session'
 import { log, logDir } from './logger'
 import { listReleases } from './releases'
 import type { LogLevel } from './logger'
@@ -99,7 +100,20 @@ export function registerIpc(isDev: boolean): void {
     cancelInstall(jobId)
   })
 
-  ipcMain.handle('godot:launch', (_event, tag: string): Promise<LaunchResult> => launchVersion(tag))
+  ipcMain.handle('godot:launch', async (event, tag: string): Promise<LaunchResult> => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+
+    // El aviso de cierre solo se engancha si de verdad vamos a escondernos:
+    // sondear procesos para nada seria trabajo inutil.
+    const hide = win !== null && getConfig().hideWhileRunning
+    const result = await launchVersion(tag, hide && win ? () => {
+      restoreAfterGame(win)
+      if (!win.isDestroyed()) win.webContents.send('godot:closed', tag)
+    } : undefined)
+
+    if (result.ok && hide && win) hideDuringGame(win, tag)
+    return result
+  })
 
   ipcMain.handle('godot:forget', (_event, tag: string): void => forgetVersion(tag))
 

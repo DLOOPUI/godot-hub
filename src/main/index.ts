@@ -3,6 +3,8 @@ import { app, BrowserWindow, shell } from 'electron'
 import { getConfig } from './config'
 import { clearTempDir } from './installer'
 import { registerIpc } from './ipc'
+import { stopWatching } from './launcher'
+import { disposeSession } from './session'
 import { installCrashHandlers, log } from './logger'
 
 const isDev = !app.isPackaged
@@ -83,6 +85,11 @@ if (!app.requestSingleInstanceLock()) {
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow()
     })
+  })
+
+  app.on('before-quit', () => {
+    stopWatching()
+    disposeSession()
   })
 
   app.on('window-all-closed', () => {

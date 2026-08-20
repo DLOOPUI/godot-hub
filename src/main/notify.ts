@@ -1,6 +1,5 @@
-import { existsSync } from 'node:fs'
-import { join } from 'node:path'
-import { app, Notification, shell } from 'electron'
+import { Notification, shell } from 'electron'
+import { iconPath } from './assets'
 
 /**
  * Toast nativo de Windows al terminar una instalacion.
@@ -10,14 +9,6 @@ import { app, Notification, shell } from 'electron'
  * en el Menu Inicio con ese mismo AppUserModelID. El instalador NSIS lo crea;
  * ejecutando sin instalar, el toast puede no aparecer.
  */
-function iconPath(): string | undefined {
-  const candidates = app.isPackaged
-    ? [join(process.resourcesPath, 'icon.ico')]
-    : [join(app.getAppPath(), 'build', 'icon.ico')]
-
-  return candidates.find((path) => existsSync(path))
-}
-
 export function notifyInstalled(tag: string, exePath: string, workspace: string): void {
   if (!Notification.isSupported()) return
 
