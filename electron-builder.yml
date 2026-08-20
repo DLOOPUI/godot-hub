@@ -1,5 +1,5 @@
-appId: com.david.godot-autoupdate
-productName: Godot AutoUpdate
+appId: com.david.godot-hub
+productName: Godot Hub
 copyright: © 2026 david
 
 directories:
@@ -31,6 +31,6 @@ nsis:
   # existe un acceso directo en el Menu Inicio con el mismo AppUserModelID
   # que fija la app.
   createStartMenuShortcut: true
-  shortcutName: Godot AutoUpdate
+  shortcutName: Godot Hub
   artifactName: ${productName}-${version}-setup.${ext}
   deleteAppDataOnUninstall: false

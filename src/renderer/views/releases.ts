@@ -6,7 +6,14 @@
  * un diff a mano, y no hay foco de texto que preservar.
  */
 import { bridge } from '../bridge'
-import { iconAlert, iconDownload, iconFolder, iconRefresh, iconSettings } from '../components/icons'
+import {
+  iconAlert,
+  iconDownload,
+  iconFolder,
+  iconPlay,
+  iconRefresh,
+  iconSettings
+} from '../components/icons'
 import { escapeHtml, formatBytes, formatDate, formatDateTime, formatEta, formatSpeed } from '../format'
 import type {
   Config,
@@ -28,6 +35,7 @@ const PHASE_LABELS: Record<InstallPhase, string> = {
 export interface ReleasesViewOptions {
   config: Config
   onInstall: (release: Release, flavor: GodotFlavor) => void
+  onLaunch: (release: Release) => void
   onOpenSettings: () => void
   onCancelInstall: () => void
 }
@@ -110,7 +118,7 @@ export function renderReleases(options: ReleasesViewOptions): ReleasesView {
 
   const paint = (result: ReleasesResult): void => {
     lastResult = result
-    renderList(list, result, flavor, installedTags, options.onInstall)
+    renderList(list, result, flavor, installedTags, options.onInstall, options.onLaunch)
     meta.innerHTML = describeMeta(result)
     if (installingTag) applyInstallingState(root, installingTag, options.onCancelInstall)
   }
@@ -171,8 +179,9 @@ function applyInstallingState(root: HTMLElement, tag: string, onCancel: () => vo
   if (!card) return
 
   card.classList.add('release-card--installing')
-  const button = card.querySelector<HTMLButtonElement>('.btn--install')
-  button?.remove()
+  // Se retiran las acciones enteras: durante la instalacion la unica accion
+  // valida sobre esta tarjeta es cancelar.
+  card.querySelector('.release-card__actions')?.remove()
 
   const progress = document.createElement('div')
   progress.className = 'release-card__progress'
@@ -242,7 +251,8 @@ function renderList(
   result: ReleasesResult,
   flavor: GodotFlavor,
   installedTags: Set<string>,
-  onInstall: (release: Release, flavor: GodotFlavor) => void
+  onInstall: (release: Release, flavor: GodotFlavor) => void,
+  onLaunch: (release: Release) => void
 ): void {
   container.innerHTML = ''
 
@@ -253,7 +263,9 @@ function renderList(
   }
 
   for (const release of result.items) {
-    container.appendChild(releaseCard(release, flavor, installedTags.has(release.tag), onInstall))
+    container.appendChild(
+      releaseCard(release, flavor, installedTags.has(release.tag), onInstall, onLaunch)
+    )
   }
 }
 
@@ -272,7 +284,8 @@ function releaseCard(
   release: Release,
   flavor: GodotFlavor,
   isInstalled: boolean,
-  onInstall: (release: Release, flavor: GodotFlavor) => void
+  onInstall: (release: Release, flavor: GodotFlavor) => void,
+  onLaunch: (release: Release) => void
 ): HTMLElement {
   const asset = release.assets[flavor]
   const card = document.createElement('article')
@@ -294,15 +307,26 @@ function releaseCard(
           : `<p style="margin-top:10px"><span class="badge badge--warning">Sin build ${flavor === 'mono' ? '.NET' : 'estándar'} para Windows</span></p>`
       }
     </div>
-    <button class="btn btn--install" ${asset ? '' : 'disabled'}>
-      ${iconDownload()}<span>${isInstalled ? 'Reinstalar' : 'Instalar'}</span>
-    </button>
+    <div class="release-card__actions">
+      ${
+        isInstalled
+          ? `<button class="btn btn--launch" data-launch>${iconPlay()}<span>Iniciar</span></button>`
+          : ''
+      }
+      <button class="btn btn--install" data-install ${asset ? '' : 'disabled'}>
+        ${iconDownload()}<span>${isInstalled ? 'Reinstalar' : 'Instalar'}</span>
+      </button>
+    </div>
   `
 
-  const button = card.querySelector<HTMLButtonElement>('button')!
+  const installButton = card.querySelector<HTMLButtonElement>('[data-install]')!
   if (asset) {
-    button.addEventListener('click', () => onInstall(release, flavor))
+    installButton.addEventListener('click', () => onInstall(release, flavor))
   }
+
+  card
+    .querySelector<HTMLButtonElement>('[data-launch]')
+    ?.addEventListener('click', () => onLaunch(release))
 
   return card
 }

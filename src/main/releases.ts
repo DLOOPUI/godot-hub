@@ -170,7 +170,7 @@ export async function listReleases(force = false): Promise<ReleasesResult> {
   try {
     const headers: Record<string, string> = {
       Accept: 'application/vnd.github+json',
-      'User-Agent': 'godot-autoupdate'
+      'User-Agent': 'godot-hub'
     }
     if (cache?.etag && !force) headers['If-None-Match'] = cache.etag
 

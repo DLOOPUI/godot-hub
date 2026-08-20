@@ -1,7 +1,7 @@
 {
-  "name": "godot-autoupdate",
+  "name": "godot-hub",
   "version": "0.1.0",
-  "description": "Gestor de versiones stable de Godot con interfaz neumorfica",
+  "description": "Gestor y lanzador de versiones stable de Godot con interfaz neumorfica",
   "main": "out/main/index.js",
   "author": "david",
   "license": "MIT",

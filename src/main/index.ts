@@ -11,7 +11,7 @@ const isDev = !app.isPackaged
  * Obligatorio en Windows: sin AppUserModelId los toasts nativos aparecen sin
  * nombre ni icono (o no aparecen). Se fija antes de crear cualquier ventana.
  */
-app.setAppUserModelId('com.david.godot-autoupdate')
+app.setAppUserModelId('com.david.godot-hub')
 
 let mainWindow: BrowserWindow | null = null
 

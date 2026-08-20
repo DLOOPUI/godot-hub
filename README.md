@@ -1,8 +1,8 @@
-# Godot AutoUpdate
+# Godot Hub
 
-Gestor de versiones de Godot para Windows. Mantiene una carpeta dedicada, lista las 10
-últimas versiones **stable** desde GitHub y descarga la elegida verificando su SHA-512,
-con notificación nativa al terminar. Interfaz neumórfica en azules Godot.
+Gestor y lanzador de versiones de Godot para Windows. Mantiene una carpeta dedicada,
+lista las 10 últimas versiones **stable** desde GitHub, descarga la elegida verificando
+su SHA-512 y la arranca desde la propia app. Interfaz neumórfica en azules Godot.
 
 Para el diseño y el por qué de cada decisión: [PLAN.md](PLAN.md).
 
@@ -56,7 +56,7 @@ Vuelve a pasar cada vez que se borra `node_modules`.
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Arranca en desarrollo con recarga en caliente |
-| `npm test` | Ejecuta las 63 pruebas (no toca la red) |
+| `npm test` | Ejecuta las 83 pruebas (no toca la red) |
 | `npm run test:watch` | Pruebas en modo vigilancia |
 | `npm run typecheck` | `tsc --noEmit` sobre `src/` y `test/` |
 | `npm run build` | Typecheck + compila los tres bundles a `out/` |
@@ -70,13 +70,13 @@ Vuelve a pasar cada vez que se borra `node_modules`.
 npm run dist
 ```
 
-Produce `release/Godot AutoUpdate-<versión>-setup.exe` (~76 MB). El instalador no es de
+Produce `release/Godot Hub-<versión>-setup.exe` (~76 MB). El instalador no es de
 un clic (permite elegir carpeta), se instala por usuario y no por máquina (no pide UAC),
 y crea accesos directos en el escritorio y el Menú Inicio.
 
 **El acceso directo del Menú Inicio no es opcional:** Windows saca de él el nombre
 legible que muestra en las notificaciones. Ejecutando sin instalar, el toast aparece
-igual pero con `com.david.godot-autoupdate` en la cabecera en vez de "Godot AutoUpdate".
+igual pero con `com.david.godot-hub` en la cabecera en vez de "Godot Hub".
 
 **El instalador no está firmado.** SmartScreen avisará la primera vez (*Más información
 → Ejecutar de todas formas*). Evitarlo requiere un certificado de firma de código.
@@ -92,9 +92,18 @@ Solo hay que regenerarlo si cambia el diseño:
 npm run make-icon
 ```
 
+## Iniciar una versión
+
+Las versiones ya instaladas muestran un botón **Iniciar** en su tarjeta, junto a
+*Reinstalar*. Arranca el editor desligado de la app: puedes cerrar Godot Hub y Godot
+sigue abierto.
+
+Si borraste la carpeta de una versión a mano, el botón lo detecta y ofrece quitarla de
+la lista de instaladas en vez de fallar en silencio.
+
 ## Dónde guarda los datos
 
-En `%APPDATA%\godot-autoupdate\`:
+En `%APPDATA%\godot-hub\`:
 
 | Archivo | Contenido |
 |---|---|
@@ -143,7 +152,7 @@ se queda como está; la app simplemente deja de gestionarla.
 npm test
 ```
 
-63 pruebas en 5 archivos, sin acceso a red: `electron` se sustituye por un doble
+83 pruebas en 7 archivos, sin acceso a red: `electron` se sustituye por un doble
 ([test/helpers/electron-mock.ts](test/helpers/electron-mock.ts)) y las descargas las
 sirve un servidor HTTP local.
 
@@ -168,7 +177,7 @@ Dos ayudantes que merecen mención:
 ## Estructura
 
 ```
-src/main/       proceso principal: ventana, IPC, config, releases, instalador, toasts, log
+src/main/       ventana, IPC, config, releases, instalador, lanzador, toasts, log
 src/preload/    contextBridge con allowlist de canales
 src/renderer/   interfaz (HTML/CSS/TS, sin framework)
 src/shared/     contrato IPC y modelos, compartidos por ambos lados

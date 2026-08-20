@@ -118,3 +118,9 @@ export interface ClearResult {
   /** Elementos que no se pudieron borrar, normalmente por estar en uso. */
   failed: { name: string; reason: string }[]
 }
+
+export type LaunchFailure = 'no-workspace' | 'not-installed' | 'outside-workspace' | 'missing' | 'failed'
+
+export type LaunchResult =
+  | { ok: true; exePath: string }
+  | { ok: false; reason: LaunchFailure; message: string; exePath?: string }

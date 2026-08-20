@@ -12,6 +12,7 @@ import type {
   InstallDone,
   InstallError,
   InstallProgress,
+  LaunchResult,
   Release,
   ReleasesResult,
   WorkspaceInspection
@@ -49,6 +50,8 @@ export interface InvokeMap {
   /** Devuelve el id del trabajo; el progreso llega por eventos. */
   'install:start': (request: InstallRequest) => string
   'install:cancel': (jobId: string) => void
+  'godot:launch': (tag: string) => LaunchResult
+  'godot:forget': (tag: string) => void
   'app:log': (level: 'info' | 'warn' | 'error', message: string) => void
   'app:open-logs': () => void
 }
@@ -73,6 +76,8 @@ export const INVOKE_CHANNELS = [
   'releases:list',
   'install:start',
   'install:cancel',
+  'godot:launch',
+  'godot:forget',
   'app:log',
   'app:open-logs'
 ] as const satisfies readonly (keyof InvokeMap)[]

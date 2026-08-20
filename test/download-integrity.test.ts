@@ -141,19 +141,21 @@ describe('integridad de la descarga', () => {
     const zip = makeZip([{ name: 'Godot_v9.9-stable_win64.exe', content: randomBytes(256 * 1024) }], {
       deflate: true
     })
-    server = await chunkedServer(zip, 32 * 1024, 0)
+
+    // La descarga se sirve despacio (32 trozos x 4 ms) a proposito: con el
+    // archivo entero de una vez terminaba antes de que el saboteador llegara a
+    // actuar, y la prueba pasaba o fallaba segun el reloj.
+    server = await chunkedServer(zip, 8 * 1024, 4)
 
     const tempFile = join(workspace, '.tmp', `${ASSET}.part`)
-    // Corrompe el .part en cuanto aparece, imitando a un antivirus o a una
-    // escritura que no llegó entera.
     const saboteur = setInterval(() => {
       void writeFile(tempFile, Buffer.alloc(64, 0)).catch(() => undefined)
-    }, 5)
+    }, 3)
 
     const result = await install('alterado', server.url)
     clearInterval(saboteur)
 
-    expect(result.done).toBeNull()
+    expect(result.done, 'la instalación no debía completarse').toBeNull()
     expect(result.error?.phase).toBe('verify')
     expect(result.error?.message).toMatch(/SHA-512|incompleta|no coincide/)
     // El zip corrupto no llega nunca a la fase de extracción.

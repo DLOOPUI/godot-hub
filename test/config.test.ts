@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -103,5 +103,74 @@ describe('setConfig', () => {
     setConfig({ workspacePath: 'D:\\dos' })
 
     expect(() => JSON.parse(readFileSync(configPath(), 'utf8'))).not.toThrow()
+  })
+})
+
+describe('migración desde el nombre anterior', () => {
+  // `userData` se deriva del nombre del producto. Al pasar de "Godot
+  // AutoUpdate" a "Godot Hub", sin migracion el usuario se encontraria el
+  // onboarding otra vez y perderia la carpeta y las versiones registradas.
+  const legacyDir = join(app.getPath('appData'), 'Godot AutoUpdate')
+  const legacyConfigPath = join(legacyDir, 'config.json')
+
+  const seedLegacy = (config: Partial<Config>): void => {
+    mkdirSync(legacyDir, { recursive: true })
+    writeFileSync(legacyConfigPath, JSON.stringify(config), 'utf8')
+  }
+
+  afterEach(async () => {
+    await rm(legacyDir, { recursive: true, force: true })
+  })
+
+  it('recupera la configuración de la instalación anterior', async () => {
+    seedLegacy({ workspacePath: 'D:/Godot', workspaceConfirmed: true, flavor: 'mono' })
+
+    const { getConfig } = await freshConfig()
+    const config = getConfig()
+
+    expect(config.workspacePath).toBe('D:/Godot')
+    expect(config.workspaceConfirmed).toBe(true)
+    expect(config.flavor).toBe('mono')
+  })
+
+  it('recupera también las versiones ya instaladas', async () => {
+    seedLegacy({
+      workspacePath: 'D:/Godot',
+      workspaceConfirmed: true,
+      installed: [
+        {
+          tag: '4.7.1-stable',
+          folder: 'Godot_v4.7.1-stable_win64',
+          exe: 'Godot_v4.7.1-stable_win64.exe',
+          flavor: 'standard',
+          installedAt: '2026-08-01T10:00:00Z'
+        }
+      ]
+    })
+
+    const { getConfig } = await freshConfig()
+    expect(getConfig().installed.map((item) => item.tag)).toEqual(['4.7.1-stable'])
+  })
+
+  it('copia, no mueve: la instalación anterior sigue usable', async () => {
+    seedLegacy({ workspacePath: 'D:/Godot' })
+
+    const { getConfig } = await freshConfig()
+    getConfig()
+
+    const original = JSON.parse(readFileSync(legacyConfigPath, 'utf8')) as Config
+    expect(original.workspacePath).toBe('D:/Godot')
+  })
+
+  it('no pisa una configuración ya existente', async () => {
+    seedLegacy({ workspacePath: 'D:/Antigua' })
+
+    const { getConfig } = await freshConfig(JSON.stringify({ workspacePath: 'D:/Actual' }))
+    expect(getConfig().workspacePath).toBe('D:/Actual')
+  })
+
+  it('arranca de cero si no hay nada que migrar', async () => {
+    const { getConfig } = await freshConfig()
+    expect(getConfig().workspacePath).toBeNull()
   })
 })

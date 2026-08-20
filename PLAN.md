@@ -1,8 +1,8 @@
-# Godot AutoUpdate — registro de diseño
+# Godot Hub — registro de diseño
 
 App de escritorio para Windows que gestiona una carpeta dedicada, lista las 10 últimas
-versiones **stable** de Godot y descarga/instala la elegida, con notificación nativa al
-terminar. Interfaz neumórfica en azules Godot.
+versiones **stable** de Godot, descarga/instala la elegida y la arranca. Notificación
+nativa al terminar. Interfaz neumórfica en azules Godot.
 
 Este documento **no** es el plan original: se actualizó al terminar para describir lo
 que realmente se construyó. Las decisiones que se apartaron del plan inicial están en
@@ -46,6 +46,7 @@ AUTOUPDATE/
 │  │  ├─ workspace.ts           # validar / inspeccionar / vaciar la carpeta
 │  │  ├─ releases.ts            # consulta de GitHub + caché con ETag
 │  │  ├─ installer.ts           # descarga, SHA-512, extracción, cancelación
+│  │  ├─ launcher.ts            # arranca una versión instalada
 │  │  ├─ notify.ts              # toasts de Windows
 │  │  └─ logger.ts              # userData/logs/app.log con rotación
 │  ├─ preload/index.ts          # contextBridge con allowlist de canales
@@ -58,7 +59,7 @@ AUTOUPDATE/
 │  │  ├─ styles/                # tokens.css, components.css
 │  │  └─ views/                 # onboarding, releases, install-flow, settings
 │  └─ shared/                   # ipc.ts (contrato), types.ts (modelos)
-├─ test/                        # 63 pruebas (vitest)
+├─ test/                        # 83 pruebas (vitest)
 │  └─ helpers/                  # electron-mock, escritor de zip, servidor HTTP
 ├─ build/icon.ico               # generado por scripts/make-icon.ts, versionado
 ├─ scripts/make-icon.ts         # regenera el icono cuando cambia el diseño
@@ -74,7 +75,7 @@ solo las funciones concretas del preload, con allowlist de canales.
 
 ## 2. Estado persistido
 
-Dos archivos en `%APPDATA%\godot-autoupdate\`:
+Dos archivos en `%APPDATA%\godot-hub\`:
 
 **`config.json`** — preferencias. Escritura atómica (temp + `rename`) y normalización
 defensiva al leer: cualquier campo ausente o con tipo incorrecto vuelve a su valor por
@@ -183,6 +184,20 @@ Cinco fases, todas emitiendo progreso y todas cancelables:
 
 Un `.part` huérfano de un cierre a mitad se barre al arrancar.
 
+### Iniciar una versión instalada
+
+Las tarjetas de versiones instaladas llevan un botón **Iniciar** junto a *Reinstalar*.
+`launchVersion` recompone el ejecutable desde `workspacePath` + la entrada de `installed`
+y **comprueba que la ruta resultante siga dentro de la carpeta de trabajo** antes de
+abrirla: `config.json` es un archivo de texto editable, y sin esa comprobación el botón
+sería "ejecuta cualquier binario del sistema".
+
+Se abre con `shell.openPath`, que usa ShellExecute: el editor queda desligado del
+gestor, así que cerrar Godot Hub no se lleva Godot por delante.
+
+Si la carpeta se borró a mano, se ofrece quitar la versión del registro en vez de
+fallar en silencio.
+
 ### Notificación
 
 `app.setAppUserModelId()` se fija antes de crear la ventana. El éxito notifica siempre;
@@ -190,8 +205,8 @@ el fallo solo si la ventana no está en primer plano, porque si lo está ya se v
 Un clic abre el Explorador con el ejecutable seleccionado.
 
 **Windows saca el nombre legible del acceso directo del Menú Inicio.** Sin instalar, el
-toast muestra `com.david.godot-autoupdate` en la cabecera; con el instalador NSIS
-muestra "Godot AutoUpdate".
+toast muestra `com.david.godot-hub` en la cabecera; con el instalador NSIS
+muestra "Godot Hub".
 
 ---
 
@@ -253,7 +268,7 @@ eventos: window:maximized-changed
 | 6 | Motor de instalación: descarga, SHA-512, extracción, cancelación | hecha |
 | 7 | Notificación nativa y empaquetado NSIS | hecha |
 | 8 | Pulido: registro, atajos, accesibilidad, cambio de carpeta | hecha |
-| — | Pruebas: 63 en vitest | hecha |
+| — | Pruebas: 83 en vitest | hecha |
 
 ---
 

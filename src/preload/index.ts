@@ -7,6 +7,7 @@ import type {
   InstallDone,
   InstallError,
   InstallProgress,
+  LaunchResult,
   ReleasesResult,
   WorkspaceInspection
 } from '../shared/types'
@@ -64,6 +65,9 @@ const api = {
     on('install:done', listener as (...args: never[]) => void),
   onInstallError: (listener: (error: InstallError) => void): (() => void) =>
     on('install:error', listener as (...args: never[]) => void),
+
+  launchVersion: (tag: string): Promise<LaunchResult> => invoke<LaunchResult>('godot:launch', tag),
+  forgetVersion: (tag: string): Promise<void> => invoke<void>('godot:forget', tag),
 
   log: (level: 'info' | 'warn' | 'error', message: string): Promise<void> =>
     invoke<void>('app:log', level, message),

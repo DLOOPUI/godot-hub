@@ -19,11 +19,19 @@ const HTML = `<!doctype html>
     box-shadow:14px 14px 30px #1c2631, -14px -14px 30px #3a4c60;
   }
   /* stroke-width va en unidades del viewBox (24), no en pixeles del render. */
-  svg{width:118px;height:118px;stroke:#5aa8e0;fill:none;
-      stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  svg{width:170px;height:170px;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .ring{stroke:#5aa8e0;stroke-width:1.5;opacity:.6}
+  .play{fill:#5aa8e0;stroke:#5aa8e0;stroke-width:2.4}
 </style></head>
 <body><div class="icon">
-  <svg viewBox="0 0 24 24"><path d="M12 3v11"/><path d="m6.5 10.5 5.5 5.5 5.5-5.5"/><path d="M4 20h16"/></svg>
+  <svg viewBox="0 0 24 24">
+    <!-- Anillo + triangulo: un boton de arranque. El anillo lo distingue de un
+         control de reproduccion y llena el lienzo, que con el triangulo suelto
+         quedaba flotando. El triangulo va desplazado 0.4 a la derecha: su masa
+         visual cae a la izquierda del centro geometrico. -->
+    <circle class="ring" cx="12" cy="12" r="9"/>
+    <path class="play" d="M10.2 7.9 16.4 12l-6.2 4.1z"/>
+  </svg>
 </div></body></html>`
 
 /**

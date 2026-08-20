@@ -87,6 +87,42 @@ async function handleInstall(release: Release, flavor: GodotFlavor): Promise<voi
   })
 }
 
+/**
+ * Inicia una version instalada. El unico fallo que admite reparacion desde aqui
+ * es que la carpeta ya no exista: se ofrece quitarla del registro para que la
+ * lista deje de prometer algo que no esta.
+ */
+async function handleLaunch(release: Release): Promise<void> {
+  const result = await bridge.launchVersion(release.tag)
+  if (result.ok) return
+
+  if (result.reason === 'missing') {
+    const answer = await openModal({
+      title: `No se encuentra Godot ${escapeHtml(release.tag)}`,
+      body: `
+        <p>${escapeHtml(result.message)}</p>
+        ${result.exePath ? `<p class="path-chip"><code>${escapeHtml(result.exePath)}</code></p>` : ''}
+        <p class="modal__note">Puedes volver a instalarla, o quitarla de la lista de instaladas.</p>
+      `,
+      actions: [
+        { label: 'Cerrar', value: null, variant: 'ghost' },
+        { label: 'Quitar de la lista', value: 'forget' }
+      ]
+    })
+    if (answer.value === 'forget') {
+      await bridge.forgetVersion(release.tag)
+      await showReleases()
+    }
+    return
+  }
+
+  await openModal({
+    title: 'No se pudo iniciar',
+    body: `<p>${escapeHtml(result.message)}</p>`,
+    actions: [{ label: 'Entendido', value: 'ok', variant: 'accent' }]
+  })
+}
+
 async function handleSettings(): Promise<void> {
   const latest = await bridge.getConfig()
   const result = await openSettings(latest)
@@ -106,6 +142,7 @@ async function showReleases(): Promise<void> {
   view = renderReleases({
     config,
     onInstall: (release, flavor) => void handleInstall(release, flavor),
+    onLaunch: (release) => void handleLaunch(release),
     onOpenSettings: () => void handleSettings(),
     onCancelInstall: () => {
       if (currentJobId) void bridge.cancelInstall(currentJobId)
@@ -117,7 +154,7 @@ async function showReleases(): Promise<void> {
 async function bootstrap(): Promise<void> {
   const root = document.getElementById('root')!
   const info = await bridge.getAppInfo()
-  root.appendChild(createTitlebar(`Godot AutoUpdate ${info.version}${info.isDev ? ' — dev' : ''}`))
+  root.appendChild(createTitlebar(`Godot Hub ${info.version}${info.isDev ? ' — dev' : ''}`))
 
   wireInstallEvents()
   wireShortcuts()

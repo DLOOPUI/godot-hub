@@ -2,12 +2,13 @@ import { randomUUID } from 'node:crypto'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { getConfig, setConfig } from './config'
 import { cancelInstall, startInstall } from './installer'
+import { forgetVersion, launchVersion } from './launcher'
 import { log, logDir } from './logger'
 import { listReleases } from './releases'
 import type { LogLevel } from './logger'
 import { clearWorkspace, inspectWorkspace } from './workspace'
 import type { AppInfo, InstallRequest, PickResult, WindowAction } from '../shared/ipc'
-import type { ClearResult, Config, ReleasesResult, WorkspaceInspection } from '../shared/types'
+import type { ClearResult, Config, LaunchResult, ReleasesResult, WorkspaceInspection } from '../shared/types'
 
 export function registerIpc(isDev: boolean): void {
   ipcMain.handle('app:info', (): AppInfo => ({
@@ -97,6 +98,10 @@ export function registerIpc(isDev: boolean): void {
     log('info', 'install:cancel solicitado', { jobId })
     cancelInstall(jobId)
   })
+
+  ipcMain.handle('godot:launch', (_event, tag: string): Promise<LaunchResult> => launchVersion(tag))
+
+  ipcMain.handle('godot:forget', (_event, tag: string): void => forgetVersion(tag))
 
   ipcMain.handle('app:log', (_event, level: LogLevel, message: string): void => {
     log(level, `[renderer] ${String(message).slice(0, 2000)}`)

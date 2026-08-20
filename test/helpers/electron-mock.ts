@@ -42,12 +42,28 @@ export const app = {
   }
 }
 
+/**
+ * Rutas pasadas a `shell.openPath`. Las pruebas del lanzador comprueban aqui
+ * que se abrio el ejecutable correcto, ya que en un entorno de test no se puede
+ * arrancar Godot de verdad.
+ */
+export const openedPaths: string[] = []
+
+/** Fuerza el error que devolveria ShellExecute al no poder abrir el archivo. */
+let openPathError = ''
+export function __setOpenPathError(message: string): void {
+  openPathError = message
+}
+
 export const shell = {
   /** Sin Papelera: se borra directamente y el llamante no nota la diferencia. */
   trashItem: async (path: string): Promise<void> => {
     await rm(path, { recursive: true, force: true })
   },
-  openPath: async (): Promise<string> => '',
+  openPath: async (path: string): Promise<string> => {
+    openedPaths.push(path)
+    return openPathError
+  },
   showItemInFolder: (): void => undefined,
   openExternal: async (): Promise<void> => undefined
 }

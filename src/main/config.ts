@@ -1,13 +1,52 @@
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { app } from 'electron'
 import { DEFAULT_CONFIG } from '../shared/types'
 import type { Config } from '../shared/types'
 
+/**
+ * Nombres que uso la app antes de llamarse "Godot Hub". `userData` se deriva
+ * del nombre del producto, asi que al renombrar la app dejaria de encontrar la
+ * configuracion del usuario y volveria al onboarding como si fuera nueva.
+ */
+const LEGACY_DIRS = ['Godot AutoUpdate', 'godot-autoupdate']
+const MIGRATED_FILES = ['config.json', 'releases-cache.json']
+
 let cache: Config | null = null
 
 function configPath(): string {
   return join(app.getPath('userData'), 'config.json')
+}
+
+/**
+ * Copia (no mueve) la configuracion de una instalacion anterior la primera vez
+ * que arranca la app renombrada. Se copia a proposito: si el usuario vuelve a
+ * la version antigua, se la encuentra intacta.
+ */
+function migrateLegacyConfig(): void {
+  if (existsSync(configPath())) return
+
+  let appData: string
+  try {
+    appData = app.getPath('appData')
+  } catch {
+    return
+  }
+
+  const source = LEGACY_DIRS.map((name) => join(appData, name)).find((dir) =>
+    existsSync(join(dir, 'config.json'))
+  )
+  if (!source) return
+
+  try {
+    const target = app.getPath('userData')
+    mkdirSync(target, { recursive: true })
+    for (const file of MIGRATED_FILES) {
+      if (existsSync(join(source, file))) copyFileSync(join(source, file), join(target, file))
+    }
+  } catch {
+    // Si la copia falla, el usuario solo tiene que volver a elegir la carpeta.
+  }
 }
 
 /**
@@ -44,6 +83,7 @@ function normalize(raw: unknown): Config {
 export function getConfig(): Config {
   if (cache) return cache
   try {
+    migrateLegacyConfig()
     const path = configPath()
     cache = existsSync(path) ? normalize(JSON.parse(readFileSync(path, 'utf8'))) : { ...DEFAULT_CONFIG }
   } catch {
