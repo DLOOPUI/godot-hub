@@ -3,6 +3,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { getConfig, setConfig } from './config'
 import { cancelInstall, startInstall } from './installer'
 import { listLibrary } from './library'
+import { listNews } from './news'
 import { forgetVersion, launchVersion } from './launcher'
 import { hideDuringGame, restoreAfterGame } from './session'
 import { log, logDir } from './logger'
@@ -15,6 +16,7 @@ import type {
   Config,
   LaunchResult,
   LibraryEntry,
+  NewsResult,
   ReleasesResult,
   WorkspaceInspection
 } from '../shared/types'
@@ -106,6 +108,22 @@ export function registerIpc(isDev: boolean): void {
   ipcMain.handle('install:cancel', (_event, jobId: string): void => {
     log('info', 'install:cancel solicitado', { jobId })
     cancelInstall(jobId)
+  })
+
+  ipcMain.handle('news:list', (_event, force: boolean): Promise<NewsResult> => listNews(force))
+
+  /**
+   * Los enlaces de las noticias se abren en el navegador del sistema, nunca
+   * dentro de la app. Se vuelve a exigir https aqui aunque el parser ya filtre:
+   * este canal queda expuesto al renderer y no debe poder abrir `file://` ni
+   * nada que no sea una pagina web.
+   */
+  ipcMain.handle('app:open-external', async (_event, url: string): Promise<void> => {
+    if (!/^https:\/\//i.test(url)) {
+      log('warn', 'enlace externo rechazado', { url: String(url).slice(0, 200) })
+      return
+    }
+    await shell.openExternal(url)
   })
 
   ipcMain.handle('library:list', (): Promise<LibraryEntry[]> => listLibrary())

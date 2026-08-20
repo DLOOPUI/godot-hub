@@ -14,6 +14,7 @@ import type {
   InstallProgress,
   LaunchResult,
   LibraryEntry,
+  NewsResult,
   Release,
   ReleasesResult,
   WorkspaceInspection
@@ -51,6 +52,8 @@ export interface InvokeMap {
   /** Devuelve el id del trabajo; el progreso llega por eventos. */
   'install:start': (request: InstallRequest) => string
   'install:cancel': (jobId: string) => void
+  'news:list': (force: boolean) => NewsResult
+  'app:open-external': (url: string) => void
   'library:list': () => LibraryEntry[]
   'godot:launch': (tag: string) => LaunchResult
   'godot:forget': (tag: string) => void
@@ -80,6 +83,8 @@ export const INVOKE_CHANNELS = [
   'releases:list',
   'install:start',
   'install:cancel',
+  'news:list',
+  'app:open-external',
   'library:list',
   'godot:launch',
   'godot:forget',

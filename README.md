@@ -56,7 +56,7 @@ Vuelve a pasar cada vez que se borra `node_modules`.
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Arranca en desarrollo con recarga en caliente |
-| `npm test` | Ejecuta las 94 pruebas (no toca la red) |
+| `npm test` | Ejecuta las 107 pruebas (no toca la red) |
 | `npm run test:watch` | Pruebas en modo vigilancia |
 | `npm run typecheck` | `tsc --noEmit` sobre `src/` y `test/` |
 | `npm run build` | Typecheck + compila los tres bundles a `out/` |
@@ -92,15 +92,24 @@ Solo hay que regenerarlo si cambia el diseño:
 npm run make-icon
 ```
 
-## Las dos secciones
+## Las tres secciones
 
 **Biblioteca** es la pantalla de entrada: lo que ya tienes instalado, con su tamaño en
 disco y un botón para arrancarlo. Es lo que se usa a diario; buscar versiones nuevas es
 ocasional. Si una carpeta se borró por fuera de la app, la versión sigue apareciendo
 marcada como ausente —ocultarla dejaría al usuario sin entender por qué desapareció— y
-se ofrece quitarla del registro.
+se ofrece quitarla del registro. Si tu versión más nueva se ha quedado por detrás de la
+última stable publicada, aparece un aviso arriba.
 
 **Versiones** es la lista de las 10 últimas stable publicadas, para instalar.
+
+**Novedades** son las últimas entradas del blog oficial (`godotengine.org/rss.xml`):
+anuncios de versión, versiones de prueba, eventos y noticias del proyecto. Los artículos
+se abren en el navegador del sistema.
+
+Solo se muestra el resumen en texto plano que trae el feed. El HTML del feed **no** se
+usa: pintarlo dentro de la app sería dejar que un tercero inyecte marcado. Las noticias
+se piden la primera vez que entras en la sección, no al arrancar.
 
 ## Iniciar una versión
 
@@ -130,6 +139,7 @@ En `%APPDATA%\godot-hub\`:
 |---|---|
 | `config.json` | Carpeta de trabajo, preferencias, versiones instaladas |
 | `releases-cache.json` | Caché de la lista de GitHub (ETag, TTL de 6 h) |
+| `news-cache.json` | Caché del feed de noticias (ETag, TTL de 1 h) |
 | `logs\app.log` | Descargas, borrados y errores. Rota al llegar a 1 MB |
 
 El desinstalador **no** borra esta carpeta.
@@ -173,7 +183,7 @@ se queda como está; la app simplemente deja de gestionarla.
 npm test
 ```
 
-94 pruebas en 9 archivos, sin acceso a red: `electron` se sustituye por un doble
+107 pruebas en 11 archivos, sin acceso a red: `electron` se sustituye por un doble
 ([test/helpers/electron-mock.ts](test/helpers/electron-mock.ts)) y las descargas las
 sirve un servidor HTTP local.
 
@@ -198,7 +208,7 @@ Dos ayudantes que merecen mención:
 ## Estructura
 
 ```
-src/main/       ventana, IPC, config, releases, instalador, lanzador, toasts, log
+src/main/       ventana, IPC, config, releases, noticias, instalador, lanzador, log
 src/preload/    contextBridge con allowlist de canales
 src/renderer/   interfaz (HTML/CSS/TS, sin framework)
 src/shared/     contrato IPC y modelos, compartidos por ambos lados

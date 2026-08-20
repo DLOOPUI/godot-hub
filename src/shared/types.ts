@@ -63,6 +63,24 @@ export interface ReleasesResult {
   error: string | null
 }
 
+export interface NewsItem {
+  title: string
+  /** Siempre https: se abre en el navegador del sistema. */
+  link: string
+  /** Texto plano. El HTML del feed NO se usa: ver news.ts. */
+  summary: string
+  /** "Release", "Pre-release", "News", "Events"... o vacio. */
+  category: string
+  publishedAt: string
+}
+
+export interface NewsResult {
+  items: NewsItem[]
+  fetchedAt: string | null
+  stale: boolean
+  error: string | null
+}
+
 export type InstallPhase = 'cleanup' | 'download' | 'verify' | 'extract' | 'finalize'
 
 export interface InstallProgress {

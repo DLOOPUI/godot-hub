@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { app, net } from 'electron'
+import { compareVersionsDesc } from '../shared/version'
 import type { Release, ReleaseAsset, ReleasesResult } from '../shared/types'
 
 /**
@@ -51,20 +52,6 @@ function writeCache(cache: CacheFile): void {
   } catch {
     // Una cache que no se puede escribir degrada el rendimiento, no la funcion.
   }
-}
-
-/**
- * Ordena por version real, no alfabeticamente: "4.10" va por encima de "4.9",
- * que es justo donde falla un sort de cadenas.
- */
-function compareVersionsDesc(a: string, b: string): number {
-  const pa = a.split('.').map(Number)
-  const pb = b.split('.').map(Number)
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const diff = (pb[i] ?? 0) - (pa[i] ?? 0)
-    if (diff !== 0) return diff
-  }
-  return 0
 }
 
 interface GithubAsset {

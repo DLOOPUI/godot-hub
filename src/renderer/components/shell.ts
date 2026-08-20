@@ -2,7 +2,7 @@ import { bridge } from '../bridge'
 import { iconFolder, iconSettings } from './icons'
 import { escapeHtml } from '../format'
 
-export type Section = 'library' | 'releases'
+export type Section = 'library' | 'releases' | 'news'
 
 export interface ShellOptions {
   workspacePath: string
@@ -37,6 +37,7 @@ export function createShell(options: ShellOptions): Shell {
       <div class="segmented" role="tablist" aria-label="Secciones">
         <button class="segmented__option" role="tab" data-section="library">Biblioteca</button>
         <button class="segmented__option" role="tab" data-section="releases">Versiones</button>
+        <button class="segmented__option" role="tab" data-section="news">Novedades</button>
       </div>
       <div class="nav__spacer"></div>
       <button class="btn btn--ghost btn--icon-only" id="settings" aria-label="Ajustes">
@@ -72,7 +73,8 @@ export function createShell(options: ShellOptions): Shell {
 
   for (const tab of tabs) {
     tab.addEventListener('click', () => {
-      const section = tab.dataset['section'] === 'releases' ? 'releases' : 'library'
+      const raw = tab.dataset['section']
+      const section: Section = raw === 'releases' || raw === 'news' ? raw : 'library'
       setActive(section)
       options.onNavigate(section)
     })

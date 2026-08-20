@@ -6,10 +6,12 @@ import { runInstallFlow } from './views/install-flow'
 import { renderOnboarding, validateSavedWorkspace } from './views/onboarding'
 import { renderReleases } from './views/releases'
 import { renderLibrary } from './views/library'
+import { renderNews } from './views/news'
 import { createShell } from './components/shell'
 import { confirmWorkspaceChange, openSettings } from './views/settings'
 import type { ReleasesView } from './views/releases'
 import type { LibraryView } from './views/library'
+import type { NewsView } from './views/news'
 import type { Section, Shell } from './components/shell'
 import type { GodotFlavor, LibraryEntry, Release } from '../shared/types'
 
@@ -17,6 +19,7 @@ let content: HTMLElement | null = null
 let shell: Shell | null = null
 let view: ReleasesView | null = null
 let library: LibraryView | null = null
+let news: NewsView | null = null
 let currentJobId: string | null = null
 
 function setView(element: HTMLElement): void {
@@ -43,7 +46,7 @@ function wireInstallEvents(): void {
 
   bridge.onGodotClosed(() => {
     // Al volver se repinta: la carpeta pudo cambiar mientras estabamos fuera.
-    void library?.refresh()
+    void refreshLibrary()
   })
 
   bridge.onInstallError((error) => {
@@ -89,7 +92,7 @@ function wireShortcuts(): void {
 async function refreshAfterInstall(): Promise<void> {
   const config = await bridge.getConfig()
   view?.setInstalled(config.installed.map((item) => item.tag))
-  await library?.refresh()
+  await refreshLibrary()
 }
 
 async function handleInstall(release: Release, flavor: GodotFlavor): Promise<void> {
@@ -135,7 +138,7 @@ async function launchByTag(tag: string, label: string): Promise<void> {
     })
     if (answer.value === 'forget') {
       await bridge.forgetVersion(tag)
-      await library?.refresh()
+      await refreshLibrary()
     }
     return
   }
@@ -153,7 +156,7 @@ async function handleLaunchEntry(entry: LibraryEntry): Promise<void> {
 
 async function handleForget(entry: LibraryEntry): Promise<void> {
   await bridge.forgetVersion(entry.tag)
-  await library?.refresh()
+  await refreshLibrary()
 }
 
 async function handleSettings(): Promise<void> {
@@ -177,15 +180,32 @@ async function handleSettings(): Promise<void> {
  * justo el momento en el que uno se va a mirar otra cosa.
  */
 function navigate(section: Section): void {
-  if (!view || !library) return
+  if (!view || !library || !news) return
 
-  const toLibrary = section === 'library'
-  library.element.hidden = !toLibrary
-  view.element.hidden = toLibrary
+  library.element.hidden = section !== 'library'
+  view.element.hidden = section !== 'releases'
+  news.element.hidden = section !== 'news'
   shell?.setActive(section)
 
+  // Cada seccion empieza por arriba: al cambiar de pestaña se heredaba el
+  // desplazamiento de la anterior y se aterrizaba a media lista.
+  if (shell) shell.element.scrollTop = 0
+
   // Al volver puede haber cambiado lo instalado.
-  if (toLibrary) void library.refresh()
+  if (section === 'library') void refreshLibrary()
+  // Las noticias se piden la primera vez que se entra, no al arrancar.
+  if (section === 'news') void news.refresh()
+}
+
+/**
+ * Refresca la biblioteca pasandole la ultima stable conocida.
+ *
+ * Se lee de la cache de versiones (sin forzar red) para poder avisar de que hay
+ * algo mas nuevo que lo instalado.
+ */
+async function refreshLibrary(): Promise<void> {
+  const releases = await bridge.listReleases(false)
+  await library?.refresh(releases.items[0]?.tag ?? null)
 }
 
 async function buildShell(): Promise<void> {
@@ -212,8 +232,11 @@ async function buildShell(): Promise<void> {
     onBrowse: () => navigate('releases')
   })
 
+  news = renderNews()
+
   shell.host.appendChild(library.element)
   shell.host.appendChild(view.element)
+  shell.host.appendChild(news.element)
   setView(shell.element)
 
   // La biblioteca es la seccion de entrada: arrancar una version instalada es

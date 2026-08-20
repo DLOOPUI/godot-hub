@@ -48,6 +48,7 @@ AUTOUPDATE/
 │  │  ├─ installer.ts           # descarga, SHA-512, extracción, cancelación
 │  │  ├─ launcher.ts            # arranca una versión y vigila cuándo se cierra
 │  │  ├─ library.ts             # versiones instaladas contrastadas con el disco
+│  │  ├─ news.ts                # feed del blog de Godot + parser acotado
 │  │  ├─ session.ts             # esconder/restaurar la ventana y el icono de bandeja
 │  │  ├─ notify.ts              # toasts de Windows
 │  │  └─ logger.ts              # userData/logs/app.log con rotación
@@ -59,9 +60,9 @@ AUTOUPDATE/
 │  │  ├─ format.ts              # bytes, fechas, ETA, escapeHtml
 │  │  ├─ components/            # icons, modal, titlebar
 │  │  ├─ styles/                # tokens.css, components.css
-│  │  └─ views/                 # onboarding, library, releases, install-flow, settings
+│  │  └─ views/                 # onboarding, library, releases, news, install-flow, settings
 │  └─ shared/                   # ipc.ts (contrato), types.ts (modelos)
-├─ test/                        # 94 pruebas (vitest)
+├─ test/                        # 107 pruebas (vitest)
 │  └─ helpers/                  # electron-mock, escritor de zip, servidor HTTP
 ├─ build/icon.ico               # generado por scripts/make-icon.ts, versionado
 ├─ scripts/make-icon.ts         # regenera el icono cuando cambia el diseño
@@ -141,10 +142,11 @@ Si algún elemento está bloqueado por otro proceso, se informa de cuál y no se
 `clearWorkspace` vuelve a validar la ruta en el proceso principal antes de borrar: el
 renderer no es la última palabra.
 
-### Las dos secciones
+### Las tres secciones
 
-La app se divide en **Biblioteca** (lo instalado, para arrancarlo) y **Versiones** (lo
-publicado, para instalarlo), con la Biblioteca como entrada por ser lo del día a día.
+La app se divide en **Biblioteca** (lo instalado, para arrancarlo), **Versiones** (lo
+publicado, para instalarlo) y **Novedades** (el blog oficial), con la Biblioteca como
+entrada por ser lo del día a día.
 
 El marco común —navegación, carpeta de trabajo y ajustes— vive en `components/shell.ts`,
 fuera de las vistas: si cada una dibujara su cabecera, cambiar de pestaña la repintaría
@@ -156,6 +158,26 @@ uno se va a mirar otra cosa.
 
 `config.installed` es solo lo que la app recuerda; `listLibrary` lo contrasta con el
 disco y marca lo ausente en vez de ocultarlo.
+
+La Biblioteca avisa cuando la versión más nueva que tienes se ha quedado por detrás de
+la última stable. La comparación usa `shared/version.ts`, el mismo módulo que ordena la
+lista de versiones: por número, nunca por texto ni por fecha.
+
+**Novedades** lee `godotengine.org/rss.xml` con la misma política de caché que las
+versiones (ETag, TTL de 1 h, y lo cacheado marcado con su fecha si falla la red). Se
+piden al entrar en la sección, no al arrancar.
+
+Dos decisiones de seguridad ahí. La primera: se usa el `<summary>` en texto plano y
+**nunca** el `<description>`, que llega como HTML de un servidor externo; pintarlo sería
+darle a un tercero la capacidad de inyectar marcado en la app. La segunda: el parser
+descarta cualquier enlace que no sea `https`, y el canal `app:open-external` vuelve a
+exigirlo en el proceso principal, porque ese canal queda expuesto al renderer y no debe
+poder abrir `file://` ni nada que no sea una página web.
+
+El parser es propio y acotado a este feed en lugar de una dependencia de XML genérica.
+Tiene una trampa que costó un fallo: dentro de una plantilla de JavaScript, `\s` se
+resuelve como `s` **antes** de construir la expresión regular, así que el patrón acababa
+buscando `[sS]` y no casaba con nada. Se usa `String.raw`.
 
 ### Paso 3 — Lista de versiones
 
@@ -306,7 +328,7 @@ eventos: window:maximized-changed
 | 6 | Motor de instalación: descarga, SHA-512, extracción, cancelación | hecha |
 | 7 | Notificación nativa y empaquetado NSIS | hecha |
 | 8 | Pulido: registro, atajos, accesibilidad, cambio de carpeta | hecha |
-| — | Pruebas: 94 en vitest | hecha |
+| — | Pruebas: 107 en vitest | hecha |
 
 ---
 

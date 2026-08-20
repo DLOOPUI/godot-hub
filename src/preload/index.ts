@@ -9,6 +9,7 @@ import type {
   InstallProgress,
   LaunchResult,
   LibraryEntry,
+  NewsResult,
   ReleasesResult,
   WorkspaceInspection
 } from '../shared/types'
@@ -67,6 +68,8 @@ const api = {
   onInstallError: (listener: (error: InstallError) => void): (() => void) =>
     on('install:error', listener as (...args: never[]) => void),
 
+  listNews: (force = false): Promise<NewsResult> => invoke<NewsResult>('news:list', force),
+  openExternal: (url: string): Promise<void> => invoke<void>('app:open-external', url),
   listLibrary: (): Promise<LibraryEntry[]> => invoke<LibraryEntry[]>('library:list'),
   launchVersion: (tag: string): Promise<LaunchResult> => invoke<LaunchResult>('godot:launch', tag),
   onGodotClosed: (listener: (tag: string) => void): (() => void) =>
