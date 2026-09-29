@@ -85,10 +85,12 @@ igual pero con `com.david.godot-hub` en la cabecera en vez de "Godot Hub".
 
 ### El icono
 
-`build/icon.ico` está versionado. Se genera renderizándolo con el propio Electron
-([scripts/make-icon.ts](scripts/make-icon.ts)) y empaquetando el PNG en un contenedor
-ICO, para no arrastrar una dependencia de tratamiento de imágenes por un solo archivo.
-Solo hay que regenerarlo si cambia el diseño:
+`build/icon.ico` está versionado. El diseño es de David: el maestro vive en
+`assets/ico.png` (780×780; los otros dos PNG de la carpeta son el mismo icono a
+300 y 150). Se genera reduciéndolo a 256 con el propio Electron
+([scripts/make-icon.ts](scripts/make-icon.ts)) y empaquetando el PNG en un
+contenedor ICO, para no arrastrar una dependencia de tratamiento de imágenes por
+un solo archivo. Solo hay que regenerarlo si cambia el diseño:
 
 ```bash
 npm run make-icon
@@ -235,6 +237,7 @@ src/renderer/   interfaz (HTML/CSS/TS, sin framework)
 src/shared/     contrato IPC y modelos, compartidos por ambos lados
 test/           pruebas y ayudantes
 build/          icono versionado
+assets/         icono de la app: PNG maestro de David (ico.png)
 scripts/        generador del icono
 ```
 

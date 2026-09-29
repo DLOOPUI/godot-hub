@@ -68,7 +68,8 @@ AUTOUPDATE/
 ├─ test/                        # 111 pruebas (vitest)
 │  └─ helpers/                  # electron-mock, escritor de zip, servidor HTTP
 ├─ build/icon.ico               # generado por scripts/make-icon.ts, versionado
-├─ scripts/make-icon.ts         # regenera el icono cuando cambia el diseño
+├─ assets/                      # diseño del icono: PNG maestro de David (ico.png)
+├─ scripts/make-icon.ts         # reduce el PNG a 256 y lo empaqueta como ICO
 ├─ electron-builder.yml         # empaquetado NSIS
 └─ vitest.config.ts
 ```
