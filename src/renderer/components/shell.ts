@@ -35,12 +35,12 @@ export function createShell(options: ShellOptions): Shell {
   stack.innerHTML = `
     <div class="nav">
       <div class="segmented" role="tablist" aria-label="Secciones">
-        <button class="segmented__option" role="tab" data-section="library">Biblioteca</button>
-        <button class="segmented__option" role="tab" data-section="releases">Versiones</button>
-        <button class="segmented__option" role="tab" data-section="news">Novedades</button>
+        <button class="segmented__option" role="tab" data-section="library">Biblioteca<span class="segmented__jp">図書館</span></button>
+        <button class="segmented__option" role="tab" data-section="releases">Versiones<span class="segmented__jp">更新</span></button>
+        <button class="segmented__option" role="tab" data-section="news">Novedades<span class="segmented__jp">便り</span></button>
       </div>
       <div class="nav__spacer"></div>
-      <button class="btn btn--ghost btn--icon-only" id="settings" aria-label="Ajustes">
+      <button class="btn btn--ghost btn--icon-only" id="settings" aria-label="Ajustes (設定)">
         ${iconSettings()}
       </button>
     </div>

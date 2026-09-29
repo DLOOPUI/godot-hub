@@ -34,7 +34,7 @@ export function renderLibrary(options: LibraryViewOptions): LibraryView {
   stack.innerHTML = `
     <div class="releases-head">
       <div>
-        <h1 class="h1">Tu biblioteca</h1>
+        <h1 class="h1">Tu biblioteca <span class="titulo-jp">図書館</span></h1>
         <p class="muted" id="library-meta">&nbsp;</p>
       </div>
     </div>

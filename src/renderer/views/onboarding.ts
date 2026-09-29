@@ -21,6 +21,7 @@ export function renderOnboarding(onReady: (path: string) => void): HTMLElement {
         <div class="hero-icon">${iconFolder('hero-icon__svg')}</div>
         <h1 class="h1" style="margin-top: var(--space-4)">
           Elija la carpeta donde se realizarán las acciones de autoactualización
+          <span class="titulo-jp">導入</span>
         </h1>
         <p class="muted" style="margin-top: var(--space-3)">
           Será una carpeta dedicada: la app borra y reescribe su contenido en cada

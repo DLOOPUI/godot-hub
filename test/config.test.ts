@@ -70,6 +70,48 @@ describe('getConfig', () => {
     const { getConfig } = await freshConfig('{"installed":"no soy un array"}')
     expect(getConfig().installed).toEqual([])
   })
+
+  it('normaliza los campos del tema', async () => {
+    const { getConfig } = await freshConfig(
+      '{"paleta":"naranja_cobalto","borde":"grueso","paletasPropias":[{"id":"p1","nombre":"Mia","primario":"#112233","secundario":"#445566","fondo":"#778899"}]}'
+    )
+    const config = getConfig()
+
+    expect(config.paleta).toBe('naranja_cobalto')
+    expect(config.borde).toBe('grueso')
+    expect(config.paletasPropias).toHaveLength(1)
+    expect(config.paletasPropias[0]?.nombre).toBe('Mia')
+  })
+
+  it('los campos del tema por defecto son la paleta original y el borde normal', async () => {
+    const { getConfig } = await freshConfig()
+    const config = getConfig()
+
+    expect(config.paleta).toBe('original')
+    expect(config.borde).toBe('normal')
+    expect(config.paletasPropias).toEqual([])
+  })
+
+  it('descarta paletas propias sin forma completa', async () => {
+    const { getConfig } = await freshConfig(
+      `{"paletasPropias":[
+        {"id":"buena","nombre":"Una","primario":"#8B2FD6","secundario":"#4AE04A","fondo":"#0A0A0F"},
+        {"id":"sin-nombre","primario":"#8B2FD6","secundario":"#4AE04A","fondo":"#0A0A0F"},
+        {"id":"color-corto","nombre":"Dos","primario":"#123","secundario":"#4AE04A","fondo":"#0A0A0F"},
+        "texto suelto"
+      ]}`
+    )
+    const config = getConfig()
+
+    expect(config.paletasPropias).toHaveLength(1)
+    expect(config.paletasPropias[0]?.id).toBe('buena')
+  })
+
+  it('descarta grosoes de borde que no existen', async () => {
+    // Un config.json editado a mano no puede forzar un --anillo inventado.
+    const { getConfig } = await freshConfig('{"borde":"gigante"}')
+    expect(getConfig().borde).toBe('normal')
+  })
 })
 
 describe('setConfig', () => {

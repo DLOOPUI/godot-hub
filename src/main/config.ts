@@ -2,6 +2,8 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, writeFil
 import { join } from 'node:path'
 import { app } from 'electron'
 import { DEFAULT_CONFIG } from '../shared/types'
+import { esHexValido, GROSORES } from '../shared/tema'
+import type { PaletaGuardada } from '../shared/tema'
 import type { Config } from '../shared/types'
 
 /**
@@ -62,6 +64,30 @@ function normalize(raw: unknown): Config {
   const bool = (value: unknown, fallback: boolean): boolean =>
     typeof value === 'boolean' ? value : fallback
 
+  // Una paleta propia solo entra si tiene forma completa: id, nombre y tres
+  // colores hex válidos. El resto se descarta entero, no se repara a medias.
+  const paletaPropia = (value: unknown): PaletaGuardada | null => {
+    if (typeof value !== 'object' || value === null) return null
+    const p = value as Record<string, unknown>
+    if (typeof p['id'] !== 'string' || !p['id']) return null
+    if (typeof p['nombre'] !== 'string') return null
+    if (!esHexValido(String(p['primario']))) return null
+    if (!esHexValido(String(p['secundario']))) return null
+    if (!esHexValido(String(p['fondo']))) return null
+    return {
+      id: p['id'],
+      nombre: p['nombre'],
+      primario: String(p['primario']).toUpperCase(),
+      secundario: String(p['secundario']).toUpperCase(),
+      fondo: String(p['fondo']).toUpperCase()
+    }
+  }
+
+  const borde =
+    typeof input['borde'] === 'string' && GROSORES.some((g) => g.id === input['borde'])
+      ? input['borde']
+      : DEFAULT_CONFIG.borde
+
   return {
     version: 1,
     workspacePath: str(input['workspacePath']),
@@ -77,6 +103,13 @@ function normalize(raw: unknown): Config {
       ? (input['installed'].filter(
           (item) => typeof item === 'object' && item !== null && typeof (item as { tag?: unknown }).tag === 'string'
         ) as Config['installed'])
+      : [],
+    paleta: str(input['paleta']) ?? DEFAULT_CONFIG.paleta,
+    borde,
+    paletasPropias: Array.isArray(input['paletasPropias'])
+      ? input['paletasPropias']
+          .map(paletaPropia)
+          .filter((p): p is PaletaGuardada => p !== null)
       : []
   }
 }

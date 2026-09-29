@@ -1,7 +1,9 @@
-/** Iconos SVG inline (trazo, 24x24). El color se hereda via `stroke`. */
-
+/** Iconos SVG inline (trazo, 24x24). El color se hereda via `stroke`.
+ *
+ * Trazo a inglete y sin remates redondos: los iconos son también tinta del
+ * cómic y una esquina redondeada desentona con todo lo demás. */
 const wrap = (paths: string, cls: string): string =>
-  `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`
+  `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${paths}</svg>`
 
 /** Flecha a bandeja: el glifo ordinario de descarga. */
 export const iconDownload = (cls = 'btn__icon'): string =>

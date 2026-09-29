@@ -23,6 +23,8 @@ export interface ModalOptions<T extends string> {
   checkbox?: string
   /** Impide cerrar con Esc o clic fuera. */
   mandatory?: boolean
+  /** Modal ancho, para contenido con rejillas (p. ej. Ajustes). */
+  ancha?: boolean
 }
 
 export interface ModalResult<T extends string> {
@@ -42,7 +44,7 @@ export function openModal<T extends string>(options: ModalOptions<T>): Promise<M
     backdrop.className = 'modal-backdrop'
 
     const modal = document.createElement('div')
-    modal.className = 'modal'
+    modal.className = options.ancha ? 'modal modal--ancha' : 'modal'
     modal.setAttribute('role', 'dialog')
     modal.setAttribute('aria-modal', 'true')
     modal.setAttribute('aria-labelledby', 'modal-title')

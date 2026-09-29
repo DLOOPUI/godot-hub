@@ -1,7 +1,7 @@
 {
   "name": "godot-hub",
-  "version": "0.2.0",
-  "description": "Gestor y lanzador de versiones stable de Godot con interfaz neumorfica",
+  "version": "0.3.0",
+  "description": "Gestor y lanzador de versiones stable de Godot con la interfaz de GENZAI",
   "main": "out/main/index.js",
   "author": "david",
   "license": "MIT",

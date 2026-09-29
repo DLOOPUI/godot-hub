@@ -1,46 +1,53 @@
-/* Componentes neumorficos. Depende de tokens.css. */
+/*
+ * Componentes del estilo GENZAI. Depende de tokens.css.
+ *
+ * Reglas que gobiernan todo lo que hay aquí (Perfil - Como trabajo):
+ * · Formas angulares y cortadas: clip-path, NADA de border-radius.
+ * · Sombras duras y desplazadas, sin difuminar: en tinta impresa no hay degradados.
+ * · El texto es blanco siempre; el color va en las sombras, nunca en las letras.
+ * · Animación bounce: se pasa de largo y vuelve.
+ * · Nada de librerías: iconos y tramas se dibujan aquí mismo.
+ */
 
-/* ---------- Primitivas de relieve ---------- */
-
-.neu-raised {
-  background: var(--surface);
-  border-radius: var(--r-card);
-  box-shadow:
-    var(--d) var(--d) var(--b) var(--shadow-dark),
-    calc(var(--d) * -1) calc(var(--d) * -1) var(--b) var(--shadow-light);
-}
-
-.neu-pressed {
-  background: var(--surface);
-  border-radius: var(--r-card);
-  box-shadow:
-    inset var(--d) var(--d) var(--b) var(--shadow-dark),
-    inset calc(var(--d) * -1) calc(var(--d) * -1) var(--b) var(--shadow-light);
-}
-
-.neu-flat {
-  background: var(--surface);
-  border-radius: var(--r-card);
-  box-shadow: none;
-}
-
-/* ---------- Barra de titulo ---------- */
+/* ─── Barra de título ─────────────────────────────────────────────────────── */
 
 .titlebar {
-  height: var(--titlebar-h);
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding-left: var(--space-4);
+  padding: 4px 6px 4px var(--space-4);
   -webkit-app-region: drag;
   user-select: none;
   flex: none;
+  /* Rayado tipo spray: el aire graffiti empieza en la marca. */
+  background: var(--rayado);
+  border-bottom: 2px solid var(--humo);
+}
+
+/* La marca es fija y sin tildes: la única que puede ir en Graffiti City,
+   que dibuja los acentos como huecos (ver Fuentes.kt de GENZAI). */
+.marca {
+  font: 26px/1.15 var(--letra-app);
+  letter-spacing: .06em;
+  color: var(--papel);
+  --s1: var(--primario);
+  --s2: var(--secundario);
+}
+
+.marca-jp {
+  font: 700 11px var(--letra-kana);
+  letter-spacing: .22em;
+  color: var(--texto);
+  --s1: var(--primario);
+  --paso: 2px;
+  transform: translateY(-2px);
 }
 
 .titlebar__title {
-  font-size: 12.5px;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
+  font: 700 11px/1 var(--letra-mono);
+  letter-spacing: .1em;
+  color: var(--texto);
 }
 
 .titlebar__spacer {
@@ -54,24 +61,24 @@
 
 .winbtn {
   width: 46px;
-  height: var(--titlebar-h);
+  min-height: 48px;
   border: 0;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--texto);
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  transition: background .1s, color .1s;
 }
 
 .winbtn:hover {
-  background: var(--shadow-light);
-  color: var(--text);
+  background: var(--humo);
+  color: var(--papel);
 }
 
 .winbtn--close:hover {
-  background: var(--danger);
-  color: #fff;
+  background: var(--aviso);
+  color: var(--papel);
 }
 
 .winbtn__icon {
@@ -81,10 +88,9 @@
 
 .winbtn:focus-visible {
   outline-offset: -3px;
-  border-radius: 0;
 }
 
-/* ---------- Layout ---------- */
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
 
 .app {
   display: flex;
@@ -95,24 +101,23 @@
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-5) var(--space-6) var(--space-6);
+  padding: 22px 28px 40px;
 }
 
 .content::-webkit-scrollbar {
-  width: 10px;
+  width: 12px;
 }
 
 .content::-webkit-scrollbar-thumb {
-  background: var(--shadow-dark);
-  border-radius: var(--r-pill);
-  border: 3px solid var(--surface);
+  background: var(--humo-2);
+  border: 3px solid var(--fondo);
 }
 
 .stack {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
-  max-width: 760px;
+  max-width: 780px;
   margin: 0 auto;
 }
 
@@ -123,103 +128,165 @@
   flex-wrap: wrap;
 }
 
-/* ---------- Tipografia ---------- */
-
-.h1 {
+/* El armazón ya aporta el hueco entre bloques: la pila interna de cada vista
+   no debe sumar otro margen ni volver a centrarse. */
+.stack--flush {
+  max-width: none;
   margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+/* ─── Tipografía ──────────────────────────────────────────────────────────── */
+
+/* Rótulos de sección: Anton, el peso de cartel del pack Técnica. */
+.h1 {
+  margin: 0;
+  font: 30px/1.1 var(--letra-titulo);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--papel);
+  --s1: var(--primario);
+}
+
+/* Títulos de tarjeta (versiones, noticias): Anton también; las noticias son
+   contenido ajeno con tildes, y Anton las trae completas. */
 .h2 {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
+  font: 20px/1.15 var(--letra-titulo);
+  letter-spacing: .02em;
+  color: var(--papel);
+  --s1: var(--primario);
+  --paso: 2px;
+  overflow-wrap: anywhere;
 }
 
 .muted {
-  color: var(--text-muted);
+  color: var(--texto);
   font-size: 13px;
   margin: 0;
 }
 
 .section-label {
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.09em;
+  font: 700 11px/1 var(--letra-mono);
+  letter-spacing: .12em;
   text-transform: uppercase;
+  color: var(--texto);
   margin: 0 0 var(--space-3);
 }
 
-/* ---------- Tarjeta ---------- */
+/* El japonés que da vida sin estorbar. Ninguna fuente del pack trae kana:
+   va con la del sistema, como en GENZAI. */
+.jp,
+.titulo-jp {
+  font: 700 12px var(--letra-kana);
+  letter-spacing: .2em;
+  color: var(--texto);
+}
 
+.titulo-jp {
+  --s1: var(--primario);
+  --paso: 2px;
+}
+
+code {
+  font: 12px var(--letra-mono);
+  color: var(--papel);
+  --s1: var(--primario);
+  --paso: 2px;
+}
+
+/* ─── Tarjeta ─────────────────────────────────────────────────────────────── */
+
+/*
+ * El panel de GENZAI: trama + panel, borde de tinta negro, y sombra negra dura
+ * — la silueta corrida que da el aire de papel recortado y pegado (es
+ * `sombraDura` de Panel.kt). El clip-path recorta también el box-shadow, así
+ * que el recorte va en el ::before y la sombra en un drop-shadow del padre.
+ */
 .card {
-  background: var(--surface);
-  border-radius: var(--r-card);
-  box-shadow:
-    var(--d) var(--d) var(--b) var(--shadow-dark),
-    calc(var(--d) * -1) calc(var(--d) * -1) var(--b) var(--shadow-light);
+  position: relative;
+  isolation: isolate;
   padding: var(--space-4) var(--space-5);
+  filter: drop-shadow(6px 6px 0 rgb(0 0 0 / .85));
+}
+
+.card::before {
+  --c: var(--corte);
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--trama), var(--panel);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  box-shadow: inset 0 0 0 2px var(--borde);
 }
 
 .card--interactive {
-  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);
+  transition: transform .45s var(--rebote), filter .15s;
 }
 
+/* Al pasar por encima asoma el segundo color: la tarjeta se levanta. */
 .card--interactive:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    calc(var(--d) + 2px) calc(var(--d) + 2px) calc(var(--b) + 4px) var(--shadow-dark),
-    calc((var(--d) + 2px) * -1) calc((var(--d) + 2px) * -1) calc(var(--b) + 4px) var(--shadow-light);
+  transform: translate(-3px, -4px);
+  filter: drop-shadow(6px 6px 0 rgb(0 0 0 / .85)) drop-shadow(9px 9px 0 var(--secundario));
 }
 
-/* ---------- Botones ---------- */
+.card--interactive:active {
+  transform: translate(2px, 2px) scale(.99);
+  transition-duration: .06s;
+}
 
+/* ─── Botones ─────────────────────────────────────────────────────────────── */
+
+/*
+ * Negros con las dos sombras de color detrás: una verde y otra morada (Perfil).
+ * Nada de botón relleno de color con letra negra: el color va en las sombras.
+ * El fondo es la tinta del cómic y el texto, blanco siempre.
+ */
 .btn {
-  --btn-d: 5px;
-  --btn-b: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: 10px 18px;
+  --s1: var(--secundario);
+  --s2: var(--primario);
+  position: relative;
+  isolation: isolate;
   border: 0;
-  border-radius: var(--r-btn);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 13.5px;
-  font-weight: 550;
+  background: none;
+  color: var(--papel);
+  padding: 10px 16px;
+  font: 700 13px/1.1 var(--letra);
+  letter-spacing: .07em;
+  text-transform: uppercase;
   cursor: pointer;
-  box-shadow:
-    var(--btn-d) var(--btn-d) var(--btn-b) var(--shadow-dark),
-    calc(var(--btn-d) * -1) calc(var(--btn-d) * -1) var(--btn-b) var(--shadow-light);
-  transition: box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease),
-    color var(--dur) var(--ease);
+  filter: drop-shadow(3px 3px 0 var(--s1)) drop-shadow(3px 3px 0 var(--s2));
+  transition: transform .4s var(--rebote), filter .15s, color .1s;
 }
 
-/* Ciclo fisico: relieve -> plano (hover) -> hundido (active) */
+.btn::before {
+  --c: var(--corte-chico);
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--fondo);
+  box-shadow: inset 0 0 0 2px var(--borde);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+
 .btn:hover:not(:disabled) {
-  box-shadow:
-    calc(var(--btn-d) / 2) calc(var(--btn-d) / 2) calc(var(--btn-b) / 1.6) var(--shadow-dark),
-    calc(var(--btn-d) / -2) calc(var(--btn-d) / -2) calc(var(--btn-b) / 1.6) var(--shadow-light);
+  transform: translate(-2px, -2px);
 }
 
 .btn:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow:
-    inset var(--btn-d) var(--btn-d) var(--btn-b) var(--shadow-dark),
-    inset calc(var(--btn-d) * -1) calc(var(--btn-d) * -1) var(--btn-b) var(--shadow-light);
+  transform: translate(3px, 3px) scale(.95);
+  transition-duration: .06s;
 }
 
 .btn:disabled {
-  cursor: not-allowed;
-  color: var(--text-muted);
-  opacity: 0.6;
-  box-shadow:
-    inset 2px 2px 5px var(--shadow-dark),
-    inset -2px -2px 5px var(--shadow-light);
+  opacity: .4;
+  cursor: default;
+  transform: none;
 }
 
 .btn__icon {
@@ -228,47 +295,49 @@
   flex: none;
 }
 
-/* Acento: el color vive en el texto/icono, no en el fondo. Un fondo plano
-   destruiria el relieve, que es lo unico que da forma al boton. */
-.btn--accent {
-  color: var(--accent-soft);
+/* Iniciar: morada la cercana, para que no compitan dos verdes en la misma
+   tarjeta (el verde es "descargar"). */
+.btn--launch {
+  --s1: var(--primario);
+  --s2: var(--secundario);
 }
 
-.btn--install .btn__icon {
-  stroke: var(--success);
-}
-
-.btn--install:hover:not(:disabled) {
-  color: var(--success);
-}
-
-/* Destructivo: color + borde + icono. Nunca solo color. */
+/* Peligro: el aviso como sombra cercana y el fondo como lejana (la lejana
+   no se ve; así quedó aprobado en DE_LAUNCHER). */
 .btn--danger {
-  color: var(--danger);
-  border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent);
+  --s1: var(--aviso);
+  --s2: var(--fondo);
 }
 
-.btn--danger .btn__icon {
-  stroke: var(--danger);
-}
-
+/* Acción secundaria: sin sombra de color, solo tinta; más callada. */
 .btn--ghost {
-  box-shadow: none;
-  color: var(--text-muted);
+  --s1: var(--fondo);
+  --s2: var(--fondo);
+  color: var(--texto);
+  filter: drop-shadow(3px 3px 0 rgb(0 0 0 / .6));
+}
+
+.btn--ghost::before {
+  background: var(--humo);
 }
 
 .btn--ghost:hover:not(:disabled) {
-  color: var(--text);
-  box-shadow:
-    calc(var(--btn-d) / 2) calc(var(--btn-d) / 2) calc(var(--btn-b) / 1.6) var(--shadow-dark),
-    calc(var(--btn-d) / -2) calc(var(--btn-d) / -2) calc(var(--btn-b) / 1.6) var(--shadow-light);
+  color: var(--papel);
+}
+
+.btn--accent {
+  /* El acento ES el botón normal: verde cerca, morada detrás. */
 }
 
 .btn--block {
   width: 100%;
 }
 
-/* ---------- Toggle (switch) ---------- */
+.btn--icon-only {
+  padding: 10px 12px;
+}
+
+/* ─── Toggle ──────────────────────────────────────────────────────────────── */
 
 .toggle {
   display: inline-flex;
@@ -286,39 +355,40 @@
 }
 
 .toggle__track {
+  --c: 6px;
   position: relative;
   width: 46px;
   height: 26px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  box-shadow:
-    inset 3px 3px 6px var(--shadow-dark),
-    inset -3px -3px 6px var(--shadow-light);
-  transition: box-shadow var(--dur) var(--ease);
   flex: none;
+  background: var(--humo);
+  box-shadow: inset 0 0 0 2px var(--borde), inset 0 -3px 0 var(--primario-sombra);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  transition: box-shadow .15s;
 }
 
 .toggle__thumb {
+  --c: 3px;
   position: absolute;
   top: 4px;
   left: 4px;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow:
-    2px 2px 4px var(--shadow-dark),
-    -1px -1px 3px var(--shadow-light);
-  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
+  background: var(--texto);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  transition: transform .35s var(--rebote), background .15s;
+}
+
+.toggle input:checked + .toggle__track {
+  box-shadow: inset 0 0 0 2px var(--borde), inset 0 -3px 0 var(--secundario);
 }
 
 .toggle input:checked + .toggle__track .toggle__thumb {
   transform: translateX(20px);
-  background: var(--accent);
+  background: var(--secundario);
 }
 
 .toggle input:focus-visible + .toggle__track {
-  outline: 2px solid var(--accent-soft);
+  outline: 2px solid var(--secundario);
   outline-offset: 3px;
 }
 
@@ -326,7 +396,7 @@
   font-size: 13.5px;
 }
 
-/* ---------- Checkbox ---------- */
+/* ─── Checkbox ────────────────────────────────────────────────────────────── */
 
 .check {
   display: inline-flex;
@@ -344,25 +414,25 @@
 }
 
 .check__box {
+  --c: 5px;
   width: 22px;
   height: 22px;
-  border-radius: 7px;
-  background: var(--surface);
-  box-shadow:
-    inset 3px 3px 6px var(--shadow-dark),
-    inset -3px -3px 6px var(--shadow-light);
+  flex: none;
+  background: var(--humo);
+  box-shadow: inset 0 0 0 2px var(--borde);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   display: grid;
   place-items: center;
-  flex: none;
 }
 
 .check__box svg {
   width: 14px;
   height: 14px;
-  stroke: var(--accent-soft);
+  stroke: var(--secundario);
+  stroke-width: 3;
   opacity: 0;
-  transform: scale(0.6);
-  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+  transform: scale(0.5);
+  transition: opacity .15s, transform .35s var(--rebote);
 }
 
 .check input:checked + .check__box svg {
@@ -371,43 +441,80 @@
 }
 
 .check input:focus-visible + .check__box {
-  outline: 2px solid var(--accent-soft);
+  outline: 2px solid var(--secundario);
   outline-offset: 3px;
 }
 
-/* ---------- Segmented (Estandar / .NET) ---------- */
+/* ─── Pestañas (secciones y variante de Godot) ────────────────────────────── */
 
 .segmented {
   display: inline-flex;
-  padding: 5px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  box-shadow:
-    inset 3px 3px 7px var(--shadow-dark),
-    inset -3px -3px 7px var(--shadow-light);
   gap: 4px;
 }
 
 .segmented__option {
+  --c: var(--corte-chico);
+  position: relative;
+  isolation: isolate;
   border: 0;
-  background: transparent;
-  color: var(--text-muted);
-  padding: 7px 16px;
-  border-radius: var(--r-pill);
+  background: none;
+  color: var(--texto);
+  padding: 8px 14px 7px;
+  font: 700 13px/1 var(--letra);
+  letter-spacing: .06em;
+  text-transform: uppercase;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 550;
-  transition: box-shadow var(--dur) var(--ease), color var(--dur) var(--ease);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  transition: transform .4s var(--rebote), background .1s, color .1s;
 }
 
+.segmented__option::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: transparent;
+  transition: background .1s;
+}
+
+.segmented__option:hover {
+  color: var(--papel);
+}
+
+.segmented__option:hover::before {
+  background: var(--humo);
+}
+
+.segmented__option:active {
+  transform: scale(.94);
+  transition-duration: .06s;
+}
+
+/* La pestaña activa es la que grita: franja verde y sombra verde en el texto. */
 .segmented__option[aria-selected='true'] {
-  color: var(--text);
-  box-shadow:
-    3px 3px 6px var(--shadow-dark),
-    -3px -3px 6px var(--shadow-light);
+  color: var(--papel);
+  --s1: var(--secundario);
+  --paso: 2px;
 }
 
-/* ---------- Barra de progreso ---------- */
+.segmented__option[aria-selected='true']::before {
+  background: var(--humo);
+  box-shadow: inset 4px 0 0 var(--secundario);
+}
+
+.segmented__jp {
+  display: block;
+  margin-top: 3px;
+  font: 700 10px/1 var(--letra-kana);
+  letter-spacing: .18em;
+}
+
+.segmented__option:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+/* ─── Barra de progreso ───────────────────────────────────────────────────── */
 
 .progress {
   display: flex;
@@ -416,98 +523,144 @@
 }
 
 .progress__track {
-  height: 14px;
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  box-shadow:
-    inset 3px 3px 6px var(--shadow-dark),
-    inset -3px -3px 6px var(--shadow-light);
+  --c: 5px;
+  height: 16px;
+  background: var(--humo);
+  box-shadow: inset 0 0 0 2px var(--borde);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
   overflow: hidden;
 }
 
+/* Relleno sólido: en tinta impresa no hay degradados. */
 .progress__fill {
   height: 100%;
   width: 0;
-  border-radius: var(--r-pill);
-  background: linear-gradient(90deg, var(--accent), var(--accent-soft));
-  box-shadow: 0 0 10px var(--accent-dim);
-  transition: width 240ms var(--ease);
+  background: var(--secundario);
+  transition: width 240ms ease-out;
 }
 
 .progress__meta {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-muted);
+  font: 700 12px var(--letra-mono);
+  color: var(--texto);
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Badge ---------- */
+/* ─── Badge ───────────────────────────────────────────────────────────────── */
 
 .badge {
+  --c: 4px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-  padding: 4px 11px;
-  border-radius: var(--r-pill);
-  box-shadow:
-    inset 2px 2px 4px var(--shadow-dark),
-    inset -2px -2px 4px var(--shadow-light);
+  font: 700 10.5px/1 var(--letra-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--texto);
+  padding: 5px 9px;
+  background: var(--humo);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
 }
 
+/* Cuadrado, no redondo: nada de esquinas redondeadas. */
 .badge::before {
   content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: 6px;
+  height: 6px;
   background: currentColor;
 }
 
 .badge--installed {
-  color: var(--accent-soft);
+  color: var(--papel);
+  --s1: var(--secundario);
+  --paso: 2px;
+}
+
+.badge--installed::before {
+  background: var(--secundario);
 }
 
 .badge--warning {
-  color: var(--warning);
+  color: var(--papel);
+  --s1: var(--aviso);
+  --paso: 2px;
 }
 
-/* ---------- Modal ---------- */
+.badge--warning::before {
+  background: var(--aviso);
+}
+
+/* ─── Modal ───────────────────────────────────────────────────────────────── */
 
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, var(--shadow-dark) 72%, transparent);
+  background: rgb(0 0 0 / .72);
   display: grid;
   place-items: center;
   padding: var(--space-5);
   z-index: 50;
-  animation: fade-in var(--dur) var(--ease);
+  animation: fade-in .15s;
 }
 
+/*
+ * El menú de DE_LAUNCHER: panel con trama y las dos sombras de color —
+ * primario cerca y secundario detrás, el mismo orden que el rótulo de GENZAI.
+ */
 .modal {
-  width: min(460px, 100%);
-  background: var(--surface);
-  border-radius: 22px;
+  --c: 20px;
+  position: relative;
+  isolation: isolate;
+  width: min(480px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
   padding: var(--space-5);
-  box-shadow:
-    10px 10px 26px var(--shadow-dark),
-    -8px -8px 22px var(--shadow-light);
-  animation: modal-in 220ms var(--ease);
+  filter: drop-shadow(6px 6px 0 var(--primario)) drop-shadow(10px 10px 0 var(--secundario));
+  animation: modal-in .5s var(--rebote);
+}
+
+.modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--trama), var(--panel);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  box-shadow: inset 0 0 0 2px var(--borde);
+}
+
+/* Ajustes trae paletas y grosores: necesita el ancho de las rejillas. */
+.modal--ancha {
+  width: min(780px, 100%);
 }
 
 .modal__title {
   margin: 0 0 var(--space-2);
-  font-size: 17px;
-  font-weight: 600;
+  font: 24px/1.15 var(--letra-titulo);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--papel);
+  --s1: var(--primario);
+  --s2: var(--secundario);
 }
 
 .modal__body {
-  color: var(--text-muted);
+  color: var(--texto);
   font-size: 13.5px;
   margin: 0 0 var(--space-4);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.modal__body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal__body::-webkit-scrollbar-thumb {
+  background: var(--humo-2);
+  border: 2px solid var(--panel);
 }
 
 .modal__actions {
@@ -518,13 +671,24 @@
   flex-wrap: wrap;
 }
 
+/* Se apilan a ancho completo (acción segura arriba) cuando no caben en fila. */
 .modal__actions--stacked {
-  flex-direction: column; /* orden del array: la accion segura queda arriba */
+  flex-direction: column;
   align-items: stretch;
 }
 
 .modal__actions--stacked .btn {
   width: 100%;
+}
+
+.modal__check {
+  margin-top: var(--space-4);
+}
+
+.modal__note {
+  margin: var(--space-3) 0 0;
+  font-size: 12px;
+  color: var(--texto);
 }
 
 @keyframes fade-in {
@@ -536,42 +700,51 @@
 @keyframes modal-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(-40px) scale(.9);
   }
 }
 
-/* ---------- Onboarding ---------- */
+/* ─── Onboarding ──────────────────────────────────────────────────────────── */
 
 .hero-icon {
+  --c: 26px;
+  position: relative;
+  isolation: isolate;
   width: 88px;
   height: 88px;
   margin: 0 auto;
-  border-radius: 26px;
   display: grid;
   place-items: center;
-  background: var(--surface);
-  box-shadow:
-    8px 8px 18px var(--shadow-dark),
-    -8px -8px 18px var(--shadow-light);
+  filter: drop-shadow(6px 6px 0 var(--primario)) drop-shadow(10px 10px 0 var(--secundario));
+}
+
+.hero-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--trama), var(--panel);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  box-shadow: inset 0 0 0 2px var(--borde);
 }
 
 .hero-icon__svg {
   width: 38px;
   height: 38px;
-  stroke: var(--accent-soft);
+  stroke: var(--secundario);
 }
 
 .path-chip {
+  --c: var(--corte-chico);
   margin: var(--space-3) 0 0;
   padding: 9px 13px;
-  border-radius: 10px;
-  font-family: var(--font-mono);
+  font-family: var(--letra-mono);
   font-size: 12px;
-  color: var(--text);
+  color: var(--papel);
   word-break: break-all;
-  box-shadow:
-    inset 3px 3px 6px var(--shadow-dark),
-    inset -3px -3px 6px var(--shadow-light);
+  background: var(--humo);
+  box-shadow: inset 0 -3px 0 var(--primario);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
 }
 
 .entry-list {
@@ -580,6 +753,7 @@
   padding: 0;
   max-height: 148px;
   overflow-y: auto;
+  font-family: var(--letra-mono);
   font-size: 12.5px;
 }
 
@@ -590,22 +764,9 @@
   text-overflow: ellipsis;
 }
 
-.entry-list code {
-  font-family: var(--font-mono);
-  color: var(--text);
-}
-
 .entry-list__more {
-  color: var(--text-muted);
+  color: var(--texto);
   font-style: italic;
-}
-
-.btn--icon-only {
-  padding: 10px;
-}
-
-.modal__check {
-  margin-top: var(--space-4);
 }
 
 .settings {
@@ -629,6 +790,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .settings__text .muted {
@@ -636,12 +798,11 @@
 }
 
 .settings__path {
-  font-family: var(--font-mono);
+  font-family: var(--letra-mono);
   word-break: break-all;
 }
 
 .settings__row--block .settings__text {
-  min-width: 0;
   flex: 1;
 }
 
@@ -649,13 +810,309 @@
   flex: none;
 }
 
-.modal__note {
-  margin: var(--space-4) 0 0;
-  font-size: 12px;
-  color: var(--text-muted);
+/* ─── Ajustes: paletas ────────────────────────────────────────────────────── */
+
+/* El rótulo de cada bloque de Ajustes. */
+.ajustes-titulo {
+  margin: 0;
+  font: 18px/1.15 var(--letra-titulo);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--papel);
+  --s1: var(--primario);
+  --paso: 2px;
 }
 
-/* ---------- Lista de versiones ---------- */
+.ajustes-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.paletas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+/* Cada carta se pinta con SUS colores (--p-*), no con los de la paleta en uso. */
+.paleta {
+  --c: var(--corte);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 0;
+  text-align: left;
+  color: var(--papel);
+  background: none;
+  cursor: pointer;
+  filter: drop-shadow(5px 5px 0 var(--humo-2));
+  transition: transform .45s var(--rebote);
+}
+
+.paleta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--trama), var(--p-fondo);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  box-shadow: inset 0 0 0 2px var(--borde);
+}
+
+.paleta:hover {
+  transform: translate(-3px, -4px);
+}
+
+.paleta:active {
+  transform: translate(3px, 3px) scale(.97);
+  transition-duration: .06s;
+}
+
+/* La elegida grita: las dos sombras de color. */
+.paleta.activa {
+  filter: drop-shadow(5px 5px 0 var(--secundario)) drop-shadow(4px 4px 0 var(--primario));
+}
+
+.paleta:focus-visible {
+  outline-offset: 3px;
+}
+
+.paleta-nombre {
+  font: 20px/1.15 var(--letra-titulo);
+  letter-spacing: .03em;
+  --s1: var(--p-primario);
+  --s2: var(--p-secundario);
+}
+
+.paleta-muestras {
+  display: flex;
+  gap: 8px;
+}
+
+.muestra {
+  --c: 6px;
+  flex: 1;
+  height: 34px;
+  background: var(--m);
+  outline: 2px solid var(--borde);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+
+.paleta-pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+}
+
+.paleta-tag {
+  font: 700 10px/1 var(--letra-mono);
+  letter-spacing: .12em;
+  color: var(--texto);
+}
+
+.paleta.activa .paleta-tag {
+  color: var(--papel);
+  --s1: var(--secundario);
+  --paso: 2px;
+}
+
+/* Nueva paleta: celda con los tres colores y la vista previa al lado. */
+.nueva {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(220px, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .nueva {
+    grid-template-columns: 1fr;
+  }
+}
+
+.celda {
+  --c: var(--corte);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px 22px;
+  filter: drop-shadow(5px 5px 0 var(--primario));
+}
+
+.celda::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--trama), var(--panel);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  box-shadow: inset 0 0 0 2px var(--borde);
+}
+
+.campo {
+  --c: var(--corte-chico);
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  outline: 0;
+  color: var(--papel);
+  background: var(--humo);
+  font-family: var(--letra-mono);
+  box-shadow: inset 0 -3px 0 var(--primario);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+}
+
+.campo:focus {
+  box-shadow: inset 0 -3px 0 var(--secundario);
+}
+
+.campo::placeholder {
+  color: var(--texto);
+}
+
+.campo.invalido {
+  box-shadow: inset 0 -3px 0 var(--aviso);
+}
+
+.fila-color {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.fila-color label {
+  font: 700 12px var(--letra-mono);
+  letter-spacing: .08em;
+  color: var(--texto);
+}
+
+/* La "rueda de color": el selector nativo, escondido tras una muestra cortada. */
+.rueda {
+  --c: 6px;
+  position: relative;
+  width: 46px;
+  height: 40px;
+  background: var(--m, var(--humo));
+  outline: 2px solid var(--borde);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  cursor: pointer;
+}
+
+.rueda input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.vista-previa {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr;
+  pointer-events: none;
+}
+
+.nota {
+  margin: 0;
+  font: 12px/1.4 var(--letra-mono);
+  color: var(--texto);
+}
+
+/* ─── Ajustes: grosor del borde ───────────────────────────────────────────── */
+
+.grosores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 22px;
+}
+
+.grosor {
+  --c: var(--corte);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  border: 0;
+  color: var(--papel);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  filter: drop-shadow(5px 5px 0 var(--humo-2));
+  transition: transform .45s var(--rebote);
+}
+
+.grosor::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--trama), var(--panel);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
+  box-shadow: inset 0 0 0 2px var(--borde);
+}
+
+.grosor:hover {
+  transform: translate(-3px, -4px);
+}
+
+.grosor:active {
+  transform: translate(3px, 3px) scale(.97);
+  transition-duration: .06s;
+}
+
+.grosor.activa {
+  filter: drop-shadow(5px 5px 0 var(--secundario)) drop-shadow(4px 4px 0 var(--primario));
+}
+
+.grosor:focus-visible {
+  outline-offset: 3px;
+}
+
+/* Cada muestra enseña el borde con SU grosor (--anillo y --r-borde en línea),
+   sin tener que elegirlo para verlo. "GODOT" es fijo y sin tildes: vale para
+   Graffiti City. */
+.muestra-borde {
+  font: 38px/1.15 var(--letra-app);
+  letter-spacing: .03em;
+  --s1: var(--primario);
+  --s2: var(--secundario);
+}
+
+.muestra-borde-chica {
+  font: 700 13px/1.2 var(--letra-kana);
+  letter-spacing: .12em;
+  --s1: var(--secundario);
+  --s2: transparent;
+}
+
+.grosor .paleta-tag {
+  margin-top: 2px;
+}
+
+/* ─── Cabeceras y barra de trabajo ────────────────────────────────────────── */
+
+.releases-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
 
 .workspace-bar {
   display: flex;
@@ -671,22 +1128,13 @@
 
 .workspace-bar__path {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--letra-mono);
   font-size: 12.5px;
+  color: var(--papel);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.releases-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-}
-
-/* ---------- Armazón y navegación ---------- */
 
 .nav {
   display: flex;
@@ -703,21 +1151,12 @@
   flex-direction: column;
 }
 
-/* El armazón ya aporta el hueco entre bloques: la pila interna de cada vista
-   no debe sumar otro margen ni volver a centrarse. */
-.stack--flush {
-  max-width: none;
-  margin: 0;
-}
-
-[hidden] {
-  display: none !important;
-}
+/* ─── Lista de versiones y biblioteca ────────────────────────────────────── */
 
 .release-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .release-card {
@@ -755,18 +1194,18 @@
   flex: none;
 }
 
-/* El verde marca "descargar"; iniciar usa el azul de acento para que no
-   compitan dos llamadas a la accion del mismo color en la misma tarjeta. */
-.btn--launch {
-  color: var(--accent-soft);
+/* ─── Aviso de versión nueva: la franja de spray que identifica el panel ──── */
+
+.update-notice::before {
+  background: linear-gradient(90deg, var(--secundario) 0 6px, transparent 6px),
+    var(--trama), var(--panel);
 }
 
-.btn--launch .btn__icon {
-  fill: var(--accent-soft);
-  stroke: var(--accent-soft);
+.meta-warning {
+  color: var(--aviso);
 }
 
-/* ---------- Noticias ---------- */
+/* ─── Noticias ────────────────────────────────────────────────────────────── */
 
 .news-card {
   display: flex;
@@ -781,12 +1220,15 @@
 }
 
 .news-card__date {
+  font-family: var(--letra-mono);
   font-size: 12px;
 }
 
 .news-card__summary {
   margin: 0;
   line-height: 1.55;
+  color: var(--texto);
+  font-size: 13.5px;
 }
 
 .news-card__actions {
@@ -795,17 +1237,7 @@
   margin-top: var(--space-2);
 }
 
-.update-notice {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.meta-warning {
-  color: var(--warning);
-}
+/* ─── Estado vacío ───────────────────────────────────────────────────────── */
 
 .empty-state {
   text-align: center;
@@ -813,47 +1245,104 @@
 }
 
 .empty-state__icon {
+  --c: 18px;
+  position: relative;
+  isolation: isolate;
   width: 64px;
   height: 64px;
   margin: 0 auto var(--space-4);
-  border-radius: 20px;
   display: grid;
   place-items: center;
-  box-shadow:
-    inset 4px 4px 8px var(--shadow-dark),
-    inset -4px -4px 8px var(--shadow-light);
+  filter: drop-shadow(4px 4px 0 rgb(0 0 0 / .85));
+}
+
+.empty-state__icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--humo);
+  box-shadow: inset 0 0 0 2px var(--borde);
+  clip-path: polygon(var(--c) 0, 100% 0, 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, 0 100%, 0 var(--c));
 }
 
 .empty-state__svg {
   width: 28px;
   height: 28px;
-  stroke: var(--warning);
+  stroke: var(--aviso);
 }
 
-/* ---------- Demo (solo fase 2) ---------- */
+/* ─── Cortina (la de GENZAI, igual que DE_LAUNCHER) ───────────────────────── */
 
-.swatches {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
+.cortina {
+  position: fixed;
+  inset: -60%;
+  z-index: 1000;
+  transform: rotate(-32deg);
+  overflow: hidden;
+  pointer-events: all;
 }
 
-.swatch {
-  width: 84px;
-  padding: var(--space-3) 0 var(--space-2);
-  border-radius: var(--r-btn);
-  text-align: center;
-  font-size: 10.5px;
-  color: var(--text-muted);
-  box-shadow:
-    4px 4px 9px var(--shadow-dark),
-    -4px -4px 9px var(--shadow-light);
+/* Negro puro y no --fondo: son las líneas de tinta, igual que el borde. */
+.cortina-franja {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--borde);
 }
 
-.swatch__chip {
-  width: 44px;
-  height: 26px;
-  border-radius: 8px;
-  margin: 0 auto var(--space-2);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+.cortina-rayo {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 12px;
+}
+
+/* ─── El borde negro en todo texto con sombra ───────────────────────────────
+   Regla de "Perfil - Como trabajo": sin borde, el blanco se funde con la sombra
+   de color y las letras pierden la forma. Capas de atrás adelante: sombra(s) de
+   color → borde negro → relleno blanco. Negro puro (--borde), no se tinta con
+   la paleta: es la tinta del cómic.
+
+   El borde es un ANILLO de sombras negras sin difuminar (24 en tema.ts; 16 en
+   el valor por defecto de :root, que solo se ve hasta que corre el script), y
+   no -webkit-text-stroke: el trazo une a inglete y sacaba picos en las esquinas
+   agudas de Graffiti City, y al seleccionar texto Chromium lo repintaba en
+   blanco encima. El anillo es la letra desplazada en círculo: el contorno sale
+   redondeado solo y la selección no se rompe.
+
+   Las sombras de color se corren A PARTIR DEL BORDE: radio del anillo + --paso
+   (y + 2 pasos la segunda). Con una distancia fija, un borde grueso las tapaba
+   — lo vio David en DE_LAUNCHER con el título de 64 px. Así, cambie el grosor
+   que cambie, asoma siempre lo mismo de cada color.
+
+   Cada texto elige --s1, --s2 y --paso, no text-shadow, y esta regla lo
+   compone. Todo se resuelve en el propio elemento, así que las muestras de
+   Ajustes, que ponen su --r-borde y su --anillo en línea, se ven con su
+   grosor. El anillo va PRIMERO porque en text-shadow la primera capa queda
+   encima. Si un texto nuevo lleva sombra, va en esta lista. */
+code,
+.marca,
+.marca-jp,
+.titulo-jp,
+.h1,
+.h2,
+.segmented__option[aria-selected='true'],
+.badge--installed,
+.badge--warning,
+.modal__title,
+.ajustes-titulo,
+.paleta-nombre,
+.paleta.activa .paleta-tag,
+.muestra-borde,
+.muestra-borde-chica {
+  text-shadow:
+    var(--anillo),
+    calc(var(--r-borde) + var(--paso)) calc(var(--r-borde) + var(--paso)) 0 var(--s1),
+    calc(var(--r-borde) + var(--paso) * 2) calc(var(--r-borde) + var(--paso) * 2) 0 var(--s2);
+}
+
+/* Al seleccionar, el anillo estorba: fuera, y el fondo lo pone la selección. */
+::selection {
+  text-shadow: none;
 }

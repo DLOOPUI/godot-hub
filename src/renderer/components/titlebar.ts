@@ -1,12 +1,20 @@
 import { bridge } from '../bridge'
 import { iconClose, iconMaximize, iconMinimize, iconRestore } from './icons'
 
-/** Barra de titulo propia: la ventana es frameless para que el neumorfismo cubra todo. */
-export function createTitlebar(title: string): HTMLElement {
+/**
+ * Barra de título propia: la ventana es frameless para que el estilo cubra todo.
+ *
+ * La marca "GODOT HUB" es texto fijo y sin tildes, así que puede ir en
+ * Graffiti City — esa fuente dibuja los acentos como huecos y solo vale para
+ * lo que escribimos nosotros. El resto de la barra va en IBM Plex Mono.
+ */
+export function createTitlebar(version: string, isDev: boolean): HTMLElement {
   const bar = document.createElement('header')
   bar.className = 'titlebar'
   bar.innerHTML = `
-    <span class="titlebar__title">${title}</span>
+    <span class="marca">GODOT HUB</span>
+    <span class="marca-jp">ゴドット・ハブ</span>
+    <span class="titlebar__title">${version}${isDev ? ' · dev' : ''}</span>
     <div class="titlebar__spacer"></div>
     <div class="titlebar__controls">
       <button class="winbtn" data-action="minimize" aria-label="Minimizar">${iconMinimize()}</button>

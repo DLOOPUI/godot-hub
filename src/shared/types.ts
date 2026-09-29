@@ -1,4 +1,5 @@
 /** Modelos de dominio compartidos por main y renderer. */
+import type { PaletaGuardada } from './tema'
 
 /** Que hacer con la version ya instalada al instalar otra (paso 5). */
 export type CleanupMode = 'delete' | 'keep'
@@ -24,6 +25,12 @@ export interface Config {
   /** Esconder el gestor mientras Godot esta abierto, al estilo de Epic Games. */
   hideWhileRunning: boolean
   installed: InstalledVersion[]
+  /** Id de la paleta en uso (ver shared/tema.ts). */
+  paleta: string
+  /** Id del grosor del borde negro de los textos. */
+  borde: string
+  /** Las paletas creadas por David. Las de fábrica no se guardan: no se borran. */
+  paletasPropias: PaletaGuardada[]
 }
 
 export const DEFAULT_CONFIG: Config = {
@@ -34,7 +41,10 @@ export const DEFAULT_CONFIG: Config = {
   defaultCleanupMode: null,
   flavor: 'standard',
   hideWhileRunning: true,
-  installed: []
+  installed: [],
+  paleta: 'original',
+  borde: 'normal',
+  paletasPropias: []
 }
 
 export interface ReleaseAsset {

@@ -64,7 +64,7 @@ export function renderReleases(options: ReleasesViewOptions): ReleasesView {
   stack.innerHTML = `
     <div class="releases-head">
       <div>
-        <h1 class="h1">Versiones stable de Godot</h1>
+        <h1 class="h1">Versiones stable de Godot <span class="titulo-jp">安定版</span></h1>
         <p class="muted" id="meta">Consultando GitHub&hellip;</p>
       </div>
       <div class="row">

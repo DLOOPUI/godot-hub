@@ -1,36 +1,98 @@
 /*
- * Tokens de diseno — neumorfismo en azules Godot.
+ * Tokens de diseño — el estilo de GENZAI (manga angular + cómic, aire graffiti).
  *
- * Regla base del neumorfismo: el fondo y la superficie comparten color. El
- * relieve nace exclusivamente de dos sombras opuestas, nunca de un borde.
- * Si cambias --surface, cambia tambien --shadow-dark/--shadow-light en la
- * misma direccion o el efecto se rompe.
+ * Los colores son PAPELES, no morado y verde: los escribe tema.ts desde la
+ * paleta elegida en Ajustes. Los valores de aquí son la paleta original
+ * ("Morado y verde" de GENZAI), para que no haya un parpadeo de otro color
+ * antes de que corra el script. Ningún color de la interfaz se escribe a mano
+ * fuera de estas variables.
+ *
+ * Siempre oscura: no hay modo claro. Si David elige un fondo claro en una
+ * paleta propia, tema.ts lo oscurece solo en vez de romper la app.
  */
 
+/* ─── Letras: pack Técnica de GENZAI (assets/fonts/4pack), las mismas que
+   DE_LAUNCHER y KASUKO. Anton para rótulos, Archivo para cuerpo y botones,
+   IBM Plex Mono para rutas y etiquetas. Licencias OFL al lado de cada archivo. */
+@font-face { font-family: 'Anton'; src: url('../fuentes/Anton-Regular.ttf'); font-display: block; }
+@font-face { font-family: 'Archivo'; src: url('../fuentes/Archivo-Regular.ttf'); font-weight: 400; font-display: block; }
+@font-face { font-family: 'Archivo'; src: url('../fuentes/Archivo-Bold.ttf'); font-weight: 700; font-display: block; }
+@font-face { font-family: 'Archivo'; src: url('../fuentes/Archivo-Black.ttf'); font-weight: 900; font-display: block; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('../fuentes/IBMPlexMono-Regular.ttf'); font-weight: 400; font-display: block; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('../fuentes/IBMPlexMono-Bold.ttf'); font-weight: 700; font-display: block; }
+/* Graffiti City (1pack de GENZAI), solo para la marca "GODOT HUB": es fijo,
+   sin tildes, y esa fuente dibuja los acentos como huecos. Anton detrás por si
+   le faltara algún carácter. */
+@font-face { font-family: 'Graffiti City'; src: url('../fuentes/GraffitiCity.otf'); font-display: block; }
+
 :root {
-  /* Superficie unica: fondo == tarjeta */
-  --surface: #2b3a4a;
-  --surface-sunken: #26343f;
-  --shadow-dark: #1e2934;
-  --shadow-light: #38495c;
+  --fondo: #0a0a0f;
+  --panel: #14141c;
+  --humo: #22222e;
+  --humo-2: #2c2c3a;
+  --borde: #000000;
+  --primario: #8b2fd6;
+  --primario-neon: #b55cff;
+  --primario-sombra: #3d1263;
+  --secundario: #4ae04a;
+  --secundario-neon: #9dff3c;
+  --papel: #f2f0e8;
+  --texto: #7a7a8c;
+  --aviso: #ff5c7a;
 
-  --accent: #478cbf;
-  --accent-soft: #5aa8e0;
-  --accent-dim: rgba(71, 140, 191, 0.18);
+  /* El corte de esquina: la forma de toda la interfaz. Nada de border-radius. */
+  --corte: 16px;
+  --corte-chico: 7px;
+  --rebote: cubic-bezier(.34, 1.8, .5, 1);
 
-  --text: #e6eef5;
-  --text-muted: #93a7b8;
+  /* Detrás de cada una, fuentes japonesas del sistema: el pack no trae kana ni kanji. */
+  --letra: 'Archivo', 'Yu Gothic UI', 'Meiryo', sans-serif;
+  --letra-titulo: 'Anton', 'Yu Gothic UI', sans-serif;
+  --letra-mono: 'IBM Plex Mono', 'Yu Gothic UI', monospace;
+  --letra-kana: 'Yu Gothic UI', 'Meiryo', sans-serif;
+  /* Anton detrás por si a Graffiti City le falta algún carácter. */
+  --letra-app: 'Graffiti City', 'Anton', sans-serif;
 
-  --success: #46b76e;
-  --danger: #c96a6a;
-  --warning: #d8a657;
+  /* Trama de semitono de cómic y rayado diagonal tipo spray. */
+  --trama: radial-gradient(circle, rgb(255 255 255 / .07) 1px, transparent 1.4px) 0 0 / 7px 7px;
+  --rayado: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--fondo), white 3%) 0 9px, var(--fondo) 9px 18px);
 
-  --r-card: 18px;
-  --r-btn: 14px;
-  --r-pill: 999px;
+  /* ─── El texto: BLANCO SIEMPRE, y la sombra lleva el color ──────────────────
+     (Perfil - Como trabajo). Nunca letras verdes o moradas.
+     · Las dos: rótulos y títulos grandes, el "rótulo pintado" de GENZAI — tres
+       copias del texto corridas: blanco delante, primario en medio, secundario detrás.
+     · Solo secundario: lo que grita (activo, seleccionado, resalte).
+     · Solo primario: títulos de sección y destacados tranquilos.
+     Cada texto elige sus sombras con tres variables y la regla común "Borde
+     negro en todo texto con sombra" (al final de components.css) las pinta:
+     --s1 (la de cerca), --s2 (la de lejos; transparente si solo lleva una) y
+     --paso (cuánto se corre cada una, 3 px salvo en lo muy chico o muy grande). */
+  --s1: transparent;
+  --s2: transparent;
+  --paso: 3px;
 
-  --d: 6px; /* distancia de sombra */
-  --b: 12px; /* blur de sombra */
+  /* Borde negro del texto: anillo de sombras (components.css explica por qué no
+     es -webkit-text-stroke). El valor de verdad lo pone tema.ts desde Ajustes;
+     este es el "Normal", para que no parpadee. */
+  --anillo:
+    calc(max(1.5px, .085em) * 1) calc(max(1.5px, .085em) * 0) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0.924) calc(max(1.5px, .085em) * 0.383) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0.707) calc(max(1.5px, .085em) * 0.707) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0.383) calc(max(1.5px, .085em) * 0.924) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0) calc(max(1.5px, .085em) * 1) 0 var(--borde),
+    calc(max(1.5px, .085em) * -0.383) calc(max(1.5px, .085em) * 0.924) 0 var(--borde),
+    calc(max(1.5px, .085em) * -0.707) calc(max(1.5px, .085em) * 0.707) 0 var(--borde),
+    calc(max(1.5px, .085em) * -0.924) calc(max(1.5px, .085em) * 0.383) 0 var(--borde),
+    calc(max(1.5px, .085em) * -1) calc(max(1.5px, .085em) * 0) 0 var(--borde),
+    calc(max(1.5px, .085em) * -0.924) calc(max(1.5px, .085em) * -0.383) 0 var(--borde),
+    calc(max(1.5px, .085em) * -0.707) calc(max(1.5px, .085em) * -0.707) 0 var(--borde),
+    calc(max(1.5px, .085em) * -0.383) calc(max(1.5px, .085em) * -0.924) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0) calc(max(1.5px, .085em) * -1) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0.383) calc(max(1.5px, .085em) * -0.924) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0.707) calc(max(1.5px, .085em) * -0.707) 0 var(--borde),
+    calc(max(1.5px, .085em) * 0.924) calc(max(1.5px, .085em) * -0.383) 0 var(--borde);
+  /* Radio del anillo: las sombras de color se corren a partir de él. */
+  --r-borde: max(1.5px, .085em);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -38,37 +100,8 @@
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-
-  --font: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'Cascadia Code', 'Consolas', monospace;
-
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur: 180ms;
-
-  --titlebar-h: 40px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --surface: #e3ebf2;
-    --surface-sunken: #dae4ed;
-    --shadow-dark: #bcc7d2;
-    --shadow-light: #ffffff;
-
-    --accent: #3d7aa8;
-    --accent-soft: #2f6790;
-    --accent-dim: rgba(61, 122, 168, 0.16);
-
-    --text: #24313d;
-    --text-muted: #5b6d7d;
-
-    --success: #2f8f52;
-    --danger: #b04a4a;
-    --warning: #a97726;
-  }
-}
-
-/* Reset minimo */
 *,
 *::before,
 *::after {
@@ -82,11 +115,9 @@ body {
 }
 
 body {
-  background: var(--surface);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 14px;
-  line-height: 1.5;
+  background: var(--fondo);
+  color: var(--papel);
+  font: 15px/1.45 var(--letra);
   overflow: hidden; /* el scroll vive en el contenido, no en la ventana */
   -webkit-font-smoothing: antialiased;
 }
@@ -98,14 +129,15 @@ select {
   color: inherit;
 }
 
-/*
- * Foco visible siempre solido. En neumorfismo las sombras NO sirven como
- * indicador de foco: no tienen contraste suficiente contra la superficie.
- */
+/* Foco visible siempre sólido: las sombras duras no sirven como indicador. */
 :focus-visible {
-  outline: 2px solid var(--accent-soft);
+  outline: 2px solid var(--secundario);
   outline-offset: 3px;
-  border-radius: var(--r-btn);
+}
+
+::selection {
+  background: var(--primario);
+  color: var(--papel);
 }
 
 @media (prefers-reduced-motion: reduce) {

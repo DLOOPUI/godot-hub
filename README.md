@@ -2,7 +2,9 @@
 
 Gestor y lanzador de versiones de Godot para Windows. Mantiene una carpeta dedicada,
 lista las 10 últimas versiones **stable** desde GitHub, descarga la elegida verificando
-su SHA-512 y la arranca desde la propia app. Interfaz neumórfica en azules Godot.
+su SHA-512 y la arranca desde la propia app. Interfaz de **GENZAI**: manga angular y
+cómic, morado-verde-negro por defecto, con paleta y borde de texto cambiables en
+Ajustes.
 
 Para el diseño y el por qué de cada decisión: [PLAN.md](PLAN.md).
 
@@ -56,7 +58,7 @@ Vuelve a pasar cada vez que se borra `node_modules`.
 | Comando | Qué hace |
 |---|---|
 | `npm run dev` | Arranca en desarrollo con recarga en caliente |
-| `npm test` | Ejecuta las 107 pruebas (no toca la red) |
+| `npm test` | Ejecuta las 111 pruebas (no toca la red) |
 | `npm run test:watch` | Pruebas en modo vigilancia |
 | `npm run typecheck` | `tsc --noEmit` sobre `src/` y `test/` |
 | `npm run build` | Typecheck + compila los tres bundles a `out/` |
@@ -111,6 +113,25 @@ Solo se muestra el resumen en texto plano que trae el feed. El HTML del feed **n
 usa: pintarlo dentro de la app sería dejar que un tercero inyecte marcado. Las noticias
 se piden la primera vez que entras en la sección, no al arrancar.
 
+## La interfaz
+
+La misma estética en todo lo que sale de este equipo: manga angular + cómic con aire
+graffiti. Formas cortadas (nada de esquinas redondeadas), sombras duras sin difuminar,
+texto blanco con borde negro y el color en las sombras, la cortina de transición al
+cambiar de sección, y descripciones cortas en japonés que dan vida sin estorbar.
+
+En **Ajustes** se cambian, y se aplican en el acto:
+
+- **La paleta.** Cuatro de fábrica (Morado y verde, Cian y fucsia, Amarillo y violeta,
+  Naranja y cobalto) y las tuyas: un nombre y tres colores `#RRGGBB`, con campo de
+  texto y rueda de color. Si eliges un fondo claro, se oscurece solo.
+- **El grosor del borde** negro de los textos: Sin borde · Fino · Normal · Grueso ·
+  Muy grueso, cada uno con su muestra antes de elegirlo.
+
+Las fuentes son el pack Técnica de GENZAI (Anton, Archivo, IBM Plex Mono) más
+Graffiti City para la marca; van con la app y sus licencias OFL están versionadas en
+`src/renderer/fuentes/`.
+
 ## Iniciar una versión
 
 Se arranca desde la Biblioteca, o desde la propia lista de Versiones si ya está
@@ -137,7 +158,7 @@ En `%APPDATA%\godot-hub\`:
 
 | Archivo | Contenido |
 |---|---|
-| `config.json` | Carpeta de trabajo, preferencias, versiones instaladas |
+| `config.json` | Carpeta de trabajo, preferencias, versiones instaladas, paleta y borde |
 | `releases-cache.json` | Caché de la lista de GitHub (ETag, TTL de 6 h) |
 | `news-cache.json` | Caché del feed de noticias (ETag, TTL de 1 h) |
 | `logs\app.log` | Descargas, borrados y errores. Rota al llegar a 1 MB |
@@ -183,7 +204,7 @@ se queda como está; la app simplemente deja de gestionarla.
 npm test
 ```
 
-107 pruebas en 11 archivos, sin acceso a red: `electron` se sustituye por un doble
+111 pruebas en 9 archivos, sin acceso a red: `electron` se sustituye por un doble
 ([test/helpers/electron-mock.ts](test/helpers/electron-mock.ts)) y las descargas las
 sirve un servidor HTTP local.
 

@@ -1,6 +1,8 @@
 import { bridge } from './bridge'
 import { createTitlebar } from './components/titlebar'
 import { openModal } from './components/modal'
+import { cortina } from './components/cortina'
+import { aplicarTema } from './tema'
 import { escapeHtml } from './format'
 import { runInstallFlow } from './views/install-flow'
 import { renderOnboarding, validateSavedWorkspace } from './views/onboarding'
@@ -173,13 +175,8 @@ async function handleSettings(): Promise<void> {
   setView(renderOnboarding(() => void buildShell()))
 }
 
-/**
- * Ambas vistas se crean una sola vez y se alterna cual esta visible.
- *
- * Destruirlas al navegar perderia el progreso de una descarga en curso, que es
- * justo el momento en el que uno se va a mirar otra cosa.
- */
-function navigate(section: Section): void {
+/** El cambio visible de sección, sin transición: lo tapa la cortina. */
+function cambiarSeccion(section: Section): void {
   if (!view || !library || !news) return
 
   library.element.hidden = section !== 'library'
@@ -195,6 +192,44 @@ function navigate(section: Section): void {
   if (section === 'library') void refreshLibrary()
   // Las noticias se piden la primera vez que se entra, no al arrancar.
   if (section === 'news') void news.refresh()
+}
+
+let seccionActual: Section | null = null
+let enTransicion = false
+let pendiente: Section | null = null
+
+/**
+ * Cambia de sección tapada por la cortina de GENZAI: franjas negras que suben,
+ * el contenido se cambia en el medio, y se retiran por el mismo camino.
+ *
+ * El primer arranque no lleva cortina (no hay nada que tapar todavía), y un
+ * clic durante la transición no se pierde: queda apuntado y se aplica al
+ * bajar la cortina.
+ */
+function navigate(section: Section): void {
+  if (!view || !library || !news) return
+
+  if (seccionActual === null) {
+    seccionActual = section
+    cambiarSeccion(section)
+    return
+  }
+
+  if (enTransicion) {
+    pendiente = section
+    return
+  }
+
+  enTransicion = true
+  void cortina(() => {
+    seccionActual = section
+    cambiarSeccion(section)
+  }).then(() => {
+    enTransicion = false
+    const siguiente = pendiente
+    pendiente = null
+    if (siguiente !== null && siguiente !== seccionActual) navigate(siguiente)
+  })
 }
 
 /**
@@ -246,13 +281,19 @@ async function buildShell(): Promise<void> {
 
 async function bootstrap(): Promise<void> {
   const root = document.getElementById('root')!
-  const info = await bridge.getAppInfo()
-  root.appendChild(createTitlebar(`Godot Hub ${info.version}${info.isDev ? ' — dev' : ''}`))
 
   wireInstallEvents()
   wireShortcuts()
 
   const config = await bridge.getConfig()
+
+  // El tema se aplica antes de montar nada: la paleta y el borde elegidos en
+  // Ajustes no deben verse un instante en los de fábrica (tokens.css arranca
+  // con la original; sin esto, la elección de David parpadearía al abrir).
+  aplicarTema(config)
+
+  const info = await bridge.getAppInfo()
+  root.appendChild(createTitlebar(info.version, info.isDev))
 
   // La carpeta guardada puede haber dejado de ser valida entre sesiones.
   const stillValid =

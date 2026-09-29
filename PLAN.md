@@ -2,7 +2,8 @@
 
 App de escritorio para Windows que gestiona una carpeta dedicada, lista las 10 últimas
 versiones **stable** de Godot, descarga/instala la elegida y la arranca. Notificación
-nativa al terminar. Interfaz neumórfica en azules Godot.
+nativa al terminar. Interfaz de **GENZAI**: manga angular + cómic, con paleta y borde
+de texto elegibles en Ajustes.
 
 Este documento **no** es el plan original: se actualizó al terminar para describir lo
 que realmente se construyó. Las decisiones que se apartaron del plan inicial están en
@@ -55,14 +56,16 @@ AUTOUPDATE/
 │  ├─ preload/index.ts          # contextBridge con allowlist de canales
 │  ├─ renderer/
 │  │  ├─ index.html             # incluye la CSP
-│  │  ├─ main.ts                # enrutado, atajos, eventos de instalación
+│  │  ├─ main.ts                # enrutado, atajos, eventos de instalación, tema
 │  │  ├─ bridge.ts              # única frontera con el backend
+│  │  ├─ tema.ts                # aplica paleta y borde a las variables CSS
 │  │  ├─ format.ts              # bytes, fechas, ETA, escapeHtml
-│  │  ├─ components/            # icons, modal, titlebar
+│  │  ├─ fuentes/               # pack Técnica + Graffiti City, con licencias OFL
+│  │  ├─ components/            # icons, modal, titlebar, cortina
 │  │  ├─ styles/                # tokens.css, components.css
 │  │  └─ views/                 # onboarding, library, releases, news, install-flow, settings
-│  └─ shared/                   # ipc.ts (contrato), types.ts (modelos)
-├─ test/                        # 107 pruebas (vitest)
+│  └─ shared/                   # ipc.ts (contrato), types.ts (modelos), tema.ts (paletas)
+├─ test/                        # 111 pruebas (vitest)
 │  └─ helpers/                  # electron-mock, escritor de zip, servidor HTTP
 ├─ build/icon.ico               # generado por scripts/make-icon.ts, versionado
 ├─ scripts/make-icon.ts         # regenera el icono cuando cambia el diseño
@@ -97,7 +100,10 @@ defecto, para que un archivo editado a mano no deje la app en un estado raro.
     { "tag": "4.7.1-stable", "folder": "Godot_v4.7.1-stable_win64",
       "exe": "Godot_v4.7.1-stable_win64.exe", "flavor": "standard",
       "installedAt": "2026-07-29T02:39:05.198Z" }
-  ]
+  ],
+  "paleta": "original",                     // id de la paleta en uso (tema)
+  "borde": "normal",                        // grosor del borde de los textos
+  "paletasPropias": []                      // las creadas en Ajustes
 }
 ```
 
@@ -270,32 +276,58 @@ muestra "Godot Hub".
 
 ---
 
-## 4. Diseño — neumorfismo en azules Godot
+## 4. Diseño — el estilo de GENZAI
 
-Base: `#478CBF` (azul Godot) sobre superficie `#2b3a4a`.
+Desde la versión 0.3.0 la interfaz es la misma de todos los proyectos: **manga
+angular estilizado + cómic independiente, con aire urbano y de graffiti**. El
+neumorfismo en azules Godot de la 0.2.0 se retiró entero (primitivas incluidas);
+la decisión y sus reglas viven en `Perfil - Como trabajo` y en
+`GENZAI - Estilo de interfaz`, y aquí solo se anota cómo se traducen.
 
-La regla que gobierna todo: **fondo y superficie comparten color**, y el relieve nace
-solo de dos sombras opuestas, nunca de un borde. Si cambia `--surface`, tienen que
-cambiar `--shadow-dark` y `--shadow-light` en la misma dirección o el efecto se rompe.
+**Colores como papeles.** `--primario` (profundo), `--secundario` (ácido) y
+`--fondo` (oscuro), de los que [shared/tema.ts](src/shared/tema.ts) deriva panel,
+humo, neones y texto. Las **cuatro paletas de fábrica** de GENZAI vienen con los
+tonos afinados a mano; las propias se derivan y un fondo claro se oscurece solo.
+Ningún color va escrito a mano fuera de esas variables. **Siempre oscura**.
 
-Tres primitivas en [components.css](src/renderer/styles/components.css): `.neu-raised`,
-`.neu-pressed`, `.neu-flat`. Los interactivos recorren **relieve → plano (hover) →
-hundido (active)**, que es lo que hace que se sienta físico en vez de decorativo.
+**El texto: blanco siempre, y la sombra lleva el color.** Nunca letras verdes o
+moradas: el orden de capas, de atrás adelante, es sombra(s) de color → borde
+negro → relleno blanco. El borde es un **anillo de 24 sombras negras sin
+difuminar** (`tema.ts`), no `-webkit-text-stroke`: el trazo saca picos en las
+esquinas agudas de Graffiti City y al seleccionar texto Chromium lo repinta
+encima. Las sombras de color se corren a partir del radio del anillo, para que
+un borde grueso no las tape. Cada texto elige `--s1`, `--s2` y `--paso`; las dos
+sombras para rótulos, solo secundario lo que grita (pestaña activa), solo
+primario los títulos.
 
-Los acentos de color viven en el texto y los iconos, no en el fondo: un fondo plano
-destruiría el relieve, que es lo único que da forma al botón.
+**Formas cortadas.** `clip-path` con esquina a inglete en todo: paneles, botones,
+pestañas, barras, hasta el pulgar del toggle. Nada de `border-radius`.
 
-### La deuda conocida del neumorfismo
+**Sombras duras.** Sin difuminar, desplazadas. Los paneles llevan la silueta
+negra corrida (`sombraDura` de GENZAI, el aire de papel recortado); los botones,
+**las dos de color** (secundario cerca, primario detrás) con fondo negro de tinta.
 
-Tiene contraste bajo por definición: los bordes son sombras, no líneas. Mitigaciones
-aplicadas desde el principio, no después:
+**Fuentes.** El pack Técnica de GENZAI, igual que DE_LAUNCHER: **Anton** en
+rótulos, **Archivo** en cuerpo y botones, **IBM Plex Mono** en rutas y etiquetas;
+licencias OFL versionadas junto a los archivos. **Graffiti City** solo para la
+marca "GODOT HUB", fija y sin tildes — esa fuente dibuja los acentos como huecos,
+y las noticias (contenido ajeno con tildes) van en Archivo, que los trae
+completos. El japonés de adorno (図書館, 更新, 便り…) va con la fuente del
+sistema: ninguna del pack trae kana.
 
-- Texto siempre ≥ 4,5:1 contra `--surface`.
-- **Foco de teclado con `outline` sólido.** Nunca depender de la sombra: no tiene
-  contraste suficiente para indicar foco.
-- Botones destructivos: color **y** borde **y** icono. Nunca solo color.
-- `@media (prefers-reduced-motion: reduce)` desactiva transiciones.
-- `prefers-color-scheme: light` conmuta la paleta con las mismas reglas.
+**Ajustes.** Paleta y borde se cambian desde Ajustes y **se aplican en el acto**,
+sin confirmar ni reiniciar. La persistencia va en `config.json` con el resto de
+preferencias (no en localStorage: una sola fuente de verdad), y la ventana lee
+su `backgroundColor` de la paleta guardada.
+
+**La cortina.** El cambio de sección cruza la transición de GENZAI: franjas
+negras sólidas que suben en diagonal sin fade, rayos de color por encima, y se
+retiran por el mismo camino. El contenido se cambia en el medio.
+
+**Trama y rayado** de semitono y spray, animación **bounce** (se pasa de largo
+y vuelve), y foco de teclado con `outline` sólido: las sombras duras no tienen
+contraste suficiente para indicar foco. `prefers-reduced-motion` desactiva
+cortina, rebotes y transiciones.
 
 ---
 
@@ -328,13 +360,14 @@ eventos: window:maximized-changed
 | 6 | Motor de instalación: descarga, SHA-512, extracción, cancelación | hecha |
 | 7 | Notificación nativa y empaquetado NSIS | hecha |
 | 8 | Pulido: registro, atajos, accesibilidad, cambio de carpeta | hecha |
-| — | Pruebas: 107 en vitest | hecha |
+| 9 | Interfaz de GENZAI: paletas y borde en Ajustes, fuentes, cortina | hecha |
+| — | Pruebas: 111 en vitest | hecha |
 
 ---
 
 ## Desvíos respecto al plan original
 
-Ocho decisiones cambiaron durante la construcción. Aquí están para que nadie deduzca
+Nueve decisiones cambiaron durante la construcción. Aquí están para que nadie deduzca
 la intención equivocada leyendo el código:
 
 1. **La caché de releases va en su propio archivo, no en `config.json`.** El plan la
@@ -369,6 +402,12 @@ la intención equivocada leyendo el código:
    absolutas y cualquier nombre con `..`, así que la comprobación propia no llega a
    dispararse. Se mantiene como segunda capa por si esa validación cambia, pero el
    comentario en el código lo dice explícitamente para no engañar a quien lo lea.
+
+9. **La interfaz de la 0.2.0 (neumorfismo en azules Godot) se retiró entera.** El plan
+   original la daba por cerrada, pero la estética de todos los proyectos de David es la
+   de GENZAI y esta app era la única que se salía. No se mezcló nada: las primitivas
+   neumórficas, el modo claro y el azul Godot desaparecieron; la lista de desvíos y la
+   sección 4 describen lo que hay ahora.
 
 ---
 

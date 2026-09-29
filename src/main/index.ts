@@ -6,6 +6,7 @@ import { registerIpc } from './ipc'
 import { stopWatching } from './launcher'
 import { disposeSession } from './session'
 import { installCrashHandlers, log } from './logger'
+import { paletaPorId, tonosDe } from '../shared/tema'
 
 const isDev = !app.isPackaged
 
@@ -18,6 +19,11 @@ app.setAppUserModelId('com.david.godot-hub')
 let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
+  // El fondo de la ventana sale de la paleta en uso: sin esto, cambiar de
+  // paleta dejaría el flash de apertura en el fondo de la anterior.
+  const config = getConfig()
+  const fondo = tonosDe(paletaPorId(config.paletasPropias, config.paleta)).fondo
+
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 720,
@@ -25,7 +31,7 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     frame: false,
-    backgroundColor: '#2b3a4a', // igual a --surface: evita el flash blanco al abrir
+    backgroundColor: fondo, // igual a --fondo: evita el flash al abrir
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,

@@ -33,7 +33,7 @@ export function renderNews(): NewsView {
   stack.innerHTML = `
     <div class="releases-head">
       <div>
-        <h1 class="h1">Novedades de Godot</h1>
+        <h1 class="h1">Novedades de Godot <span class="titulo-jp">便り</span></h1>
         <p class="muted" id="news-meta">Consultando godotengine.org&hellip;</p>
       </div>
       <button class="btn btn--ghost" id="news-refresh" aria-label="Recargar las noticias">
