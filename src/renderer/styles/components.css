@@ -141,9 +141,11 @@
 
 /* ─── Tipografía ──────────────────────────────────────────────────────────── */
 
-/* Rótulos de sección: Anton, el peso de cartel del pack Técnica. */
+/* Rótulos de sección: Anton, el peso de cartel del pack Técnica.
+   El margen inferior no es decoración: las sombras del rótulo alcanzan varios
+   píxeles por debajo y sin él caen encima del texto que sigue. */
 .h1 {
-  margin: 0;
+  margin: 0 0 var(--space-3);
   font: 30px/1.1 var(--letra-titulo);
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -154,7 +156,7 @@
 /* Títulos de tarjeta (versiones, noticias): Anton también; las noticias son
    contenido ajeno con tildes, y Anton las trae completas. */
 .h2 {
-  margin: 0;
+  margin: 0 0 var(--space-2);
   font: 20px/1.15 var(--letra-titulo);
   letter-spacing: .02em;
   color: var(--papel);
@@ -251,6 +253,10 @@ code {
   --s2: var(--primario);
   position: relative;
   isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   border: 0;
   background: none;
   color: var(--papel);
@@ -637,7 +643,7 @@ code {
 }
 
 .modal__title {
-  margin: 0 0 var(--space-2);
+  margin: 0 0 var(--space-3);
   font: 24px/1.15 var(--letra-titulo);
   letter-spacing: .03em;
   text-transform: uppercase;

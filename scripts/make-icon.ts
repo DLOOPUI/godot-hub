@@ -3,8 +3,14 @@
  *
  * El diseño ya no se dibuja aquí: David exporta el PNG maestro (780×780) y
  * este script solo lo reduce a 256 y lo empaqueta como ICO. Sigue sin meter
- * una dependencia de tratamiento de imágenes solo para esto: el reescalado lo
- * hace Chromium al renderizar la imagen a 256 en una ventana oculta.
+ * una dependencia de tratamiento de imágenes: el reescalado lo hace
+ * `nativeImage.resize` de Electron, con calidad "best".
+ *
+ * Se fue de una versión que renderizaba la imagen en una ventana oculta y
+ * capturaba la página: la página era un data: URL y Chromium le bloquea la
+ * carga de subrecursos file:// (origen opaco), así que la captura salía un
+ * lienzo casi vacío con el guiño de imagen rota en una esquina — el icono se
+ * veía diminuto dentro de su hueco. Sin página no hay nada que bloquear.
  *
  * Se ejecuta a mano cuando cambia el diseño; el .ico resultante se versiona.
  * Los otros dos PNG de assets/ son el mismo icono a 300 y 150: quedan como
@@ -12,8 +18,7 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { pathToFileURL } from 'node:url'
-import { app, BrowserWindow } from 'electron'
+import { app, nativeImage } from 'electron'
 
 const SIZE = 256
 
@@ -47,34 +52,21 @@ async function main(): Promise<void> {
   // punto de entrada y getAppPath() apuntaria ahi dentro.
   const origen = join(process.cwd(), 'assets', 'ico.png')
 
-  const win = new BrowserWindow({
-    width: SIZE,
-    height: SIZE,
-    show: false,
-    transparent: true,
-    frame: false,
-    webPreferences: { offscreen: true }
-  })
+  const maestro = nativeImage.createFromPath(origen)
+  if (maestro.isEmpty()) {
+    console.error(`no se pudo leer el maestro: ${origen}`)
+    app.quit()
+    return
+  }
 
-  const html = `<!doctype html>
-<html><head><meta charset="utf-8"><style>
-  html,body{margin:0;width:${SIZE}px;height:${SIZE}px;background:transparent}
-  img{width:${SIZE}px;height:${SIZE}px;display:block}
-</style></head>
-<body><img src="${pathToFileURL(origen).href}"></body></html>`
-
-  await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
-  await new Promise((resolve) => setTimeout(resolve, 400)) // deja asentar el render
-
-  const image = await win.webContents.capturePage()
-  const png = image.toPNG()
+  const png = maestro.resize({ width: SIZE, height: SIZE, quality: 'best' }).toPNG()
 
   const outDir = join(process.cwd(), 'build')
   await mkdir(outDir, { recursive: true })
   await writeFile(join(outDir, 'icon.png'), png)
   await writeFile(join(outDir, 'icon.ico'), pngToIco(png))
 
-  console.log(`icono generado: ${image.getSize().width}x${image.getSize().height}, ${png.length} bytes`)
+  console.log(`icono generado: ${SIZE}x${SIZE}, ${png.length} bytes`)
   app.quit()
 }
 
