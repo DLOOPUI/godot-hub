@@ -1,72 +1,105 @@
 /**
- * Genera build/icon.ico a partir del icono de David: assets/ico.png.
+ * Genera build/icon.ico a partir de los iconos de David:
+ * assets/ico.png (780x780), assets/ico1.png (300x300) y assets/ico2.png (150x150).
  *
- * El diseño ya no se dibuja aquí: David exporta el PNG maestro (780×780) y
- * este script solo lo reduce a 256 y lo empaqueta como ICO. Sigue sin meter
- * una dependencia de tratamiento de imágenes: el reescalado lo hace
- * `nativeImage.resize` de Electron, con calidad "best".
- *
- * Se fue de una versión que renderizaba la imagen en una ventana oculta y
- * capturaba la página: la página era un data: URL y Chromium le bloquea la
- * carga de subrecursos file:// (origen opaco), así que la captura salía un
- * lienzo casi vacío con el guiño de imagen rota en una esquina — el icono se
- * veía diminuto dentro de su hueco. Sin página no hay nada que bloquear.
- *
- * Se ejecuta a mano cuando cambia el diseño; el .ico resultante se versiona.
- * Los otros dos PNG de assets/ son el mismo icono a 300 y 150: quedan como
- * referencia, pero el ICO sale del maestro de 780.
+ * Genera un ICO multi-resolucion con todos los tamaños estándar de Windows
+ * (16, 20, 24, 32, 40, 48, 64, 128, 256 px). Para los tamaños pequeños (<=150px),
+ * reescala desde ico2.png (150px) o ico1.png (300px) para conservar máxima
+ * nitidez y contraste sin perder líneas finas al reducir desde 780px.
  */
+import { existsSync } from 'node:fs'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { app, nativeImage } from 'electron'
 
-const SIZE = 256
+const SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256]
+
+interface IconFrame {
+  size: number
+  png: Buffer
+}
 
 /**
- * Empaqueta un PNG como ICO. Windows Vista+ acepta un unico PNG de 256x256
- * dentro del contenedor, asi que basta la cabecera de 22 bytes.
+ * Empaqueta múltiples PNG como un ICO multi-resolución de Windows.
  */
-function pngToIco(png: Buffer): Buffer {
+function pngsToIco(frames: IconFrame[]): Buffer {
+  const count = frames.length
   const header = Buffer.alloc(6)
   header.writeUInt16LE(0, 0) // reservado
   header.writeUInt16LE(1, 2) // tipo: icono
-  header.writeUInt16LE(1, 4) // numero de imagenes
+  header.writeUInt16LE(count, 4) // numero de imagenes
 
-  const entry = Buffer.alloc(16)
-  entry.writeUInt8(0, 0) // ancho 0 == 256
-  entry.writeUInt8(0, 1) // alto 0 == 256
-  entry.writeUInt8(0, 2) // paleta
-  entry.writeUInt8(0, 3) // reservado
-  entry.writeUInt16LE(1, 4) // planos
-  entry.writeUInt16LE(32, 6) // bits por pixel
-  entry.writeUInt32LE(png.length, 8)
-  entry.writeUInt32LE(header.length + entry.length, 12)
+  const entriesHeaderSize = 6 + 16 * count
+  let currentOffset = entriesHeaderSize
 
-  return Buffer.concat([header, entry, png])
+  const entries: Buffer[] = []
+  const pngs: Buffer[] = []
+
+  for (const frame of frames) {
+    const entry = Buffer.alloc(16)
+    const w = frame.size >= 256 ? 0 : frame.size
+    const h = frame.size >= 256 ? 0 : frame.size
+
+    entry.writeUInt8(w, 0)
+    entry.writeUInt8(h, 1)
+    entry.writeUInt8(0, 2) // paleta
+    entry.writeUInt8(0, 3) // reservado
+    entry.writeUInt16LE(1, 4) // planos
+    entry.writeUInt16LE(32, 6) // bits por pixel
+    entry.writeUInt32LE(frame.png.length, 8)
+    entry.writeUInt32LE(currentOffset, 12)
+
+    entries.push(entry)
+    pngs.push(frame.png)
+
+    currentOffset += frame.png.length
+  }
+
+  return Buffer.concat([header, ...entries, ...pngs])
 }
 
 async function main(): Promise<void> {
   await app.whenReady()
 
-  // cwd, no getAppPath(): el script se ejecuta con un paquete temporal como
-  // punto de entrada y getAppPath() apuntaria ahi dentro.
-  const origen = join(process.cwd(), 'assets', 'ico.png')
+  const assetsDir = join(process.cwd(), 'assets')
+  const path780 = join(assetsDir, 'ico.png')
+  const path300 = join(assetsDir, 'ico1.png')
+  const path150 = join(assetsDir, 'ico2.png')
 
-  const maestro = nativeImage.createFromPath(origen)
-  if (maestro.isEmpty()) {
-    console.error(`no se pudo leer el maestro: ${origen}`)
+  const img780 = nativeImage.createFromPath(path780)
+  const img300 = existsSync(path300) ? nativeImage.createFromPath(path300) : img780
+  const img150 = existsSync(path150) ? nativeImage.createFromPath(path150) : img300
+
+  if (img780.isEmpty()) {
+    console.error(`no se pudo leer el maestro: ${path780}`)
     app.quit()
     return
   }
 
-  const png = maestro.resize({ width: SIZE, height: SIZE, quality: 'best' }).toPNG()
+  const frames: IconFrame[] = []
+
+  for (const size of SIZES) {
+    let source = img780
+    if (size <= 150 && !img150.isEmpty()) {
+      source = img150
+    } else if (size <= 300 && !img300.isEmpty()) {
+      source = img300
+    }
+
+    const png = source.resize({ width: size, height: size, quality: 'best' }).toPNG()
+    frames.push({ size, png })
+  }
 
   const outDir = join(process.cwd(), 'build')
   await mkdir(outDir, { recursive: true })
-  await writeFile(join(outDir, 'icon.png'), png)
-  await writeFile(join(outDir, 'icon.ico'), pngToIco(png))
 
-  console.log(`icono generado: ${SIZE}x${SIZE}, ${png.length} bytes`)
+  const frame256 = frames.find((f) => f.size === 256) ?? frames[frames.length - 1]
+  await writeFile(join(outDir, 'icon.png'), frame256.png)
+
+  const icoBuffer = pngsToIco(frames)
+  await writeFile(join(outDir, 'icon.ico'), icoBuffer)
+
+  console.log(`icono generado: ${SIZES.join(', ')} px, total ${icoBuffer.length} bytes`)
   app.quit()
 }
 
